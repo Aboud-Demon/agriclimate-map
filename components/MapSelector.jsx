@@ -46,6 +46,7 @@ function MapClickHandler({ onSelect }) {
 export default function MapSelector({
   selectedPoint,
   analysisStatus,
+  isAnalyzing,
   analysisMessage,
   onPointSelect,
   onAnalyzeLocation,
@@ -169,7 +170,7 @@ export default function MapSelector({
           <button
             type="button"
             onClick={onAnalyzeLocation}
-            disabled={analysisStatus === "loading"}
+            disabled={isAnalyzing}
             className={`mt-5 inline-flex w-full items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-semibold ${
               selectedPoint
                 ? "bg-[var(--color-primary-strong)] text-white shadow-[0_18px_34px_-22px_rgba(27,94,32,0.78)]"
@@ -177,9 +178,7 @@ export default function MapSelector({
             }`}
           >
             <Target className="h-4 w-4" />
-            {analysisStatus === "loading"
-              ? "Analyzing Location..."
-              : "Analyze Location"}
+            {isAnalyzing ? "Analyzing Location..." : "Analyze Location"}
           </button>
 
           <p className="mt-3 text-sm text-[var(--color-foreground-muted)]">

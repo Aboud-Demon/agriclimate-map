@@ -32,10 +32,14 @@ export default function ResultPanel({
   selectedPoint,
   weatherData,
   soilData,
+  riskData,
   analysisStatus,
   analysisMessage,
   soilStatus,
   soilMessage,
+  riskStatus,
+  riskMessage,
+  isAnalyzing,
   onAnalyzeLocation,
 }) {
   const coordinates = selectedPoint
@@ -43,8 +47,8 @@ export default function ResultPanel({
     : "No data yet";
 
   const statusLabel =
-    analysisStatus === "loading"
-      ? "Fetching historical weather data..."
+    isAnalyzing
+      ? "Fetching analysis data..."
       : analysisStatus === "error"
         ? analysisMessage
         : analysisStatus === "success"
@@ -58,17 +62,15 @@ export default function ResultPanel({
           <button
             type="button"
             onClick={onAnalyzeLocation}
-            disabled={analysisStatus === "loading"}
+            disabled={isAnalyzing}
             className={`flex w-full items-center justify-center gap-2 rounded-2xl px-4 py-4 text-base font-semibold ${
-              analysisStatus === "loading" || !selectedPoint
+              isAnalyzing || !selectedPoint
                 ? "bg-[var(--color-surface-4)] text-[var(--color-foreground-soft)]"
                 : "bg-[var(--color-primary-strong)] text-white shadow-[0_18px_34px_-22px_rgba(27,94,32,0.78)]"
             }`}
           >
             <ChartColumn className="h-5 w-5" />
-            {analysisStatus === "loading"
-              ? "Fetching Historical Weather..."
-              : "Analyze Location"}
+            {isAnalyzing ? "Fetching Analysis..." : "Analyze Location"}
           </button>
           <p className="mt-3 text-sm text-[var(--color-foreground-muted)]">
             {analysisMessage}
@@ -126,7 +128,7 @@ export default function ResultPanel({
           />
           <WeatherCards
             summary={weatherData?.summary}
-            isLoading={analysisStatus === "loading"}
+            isLoading={isAnalyzing}
           />
         </section>
 
@@ -134,7 +136,7 @@ export default function ResultPanel({
           <SectionTitle icon={Leaf} title="Soil Analysis" />
           <SoilCards
             summary={soilData?.summary}
-            isLoading={soilStatus === "loading"}
+            isLoading={isAnalyzing && soilStatus === "loading"}
             message={soilMessage}
           />
         </section>
@@ -168,7 +170,11 @@ export default function ResultPanel({
             icon={AlertTriangle}
             title="Seasonal Agricultural Alerts"
           />
-          <AlertPanel />
+          <AlertPanel
+            alerts={riskData?.alerts ?? []}
+            isLoading={isAnalyzing && riskStatus === "loading"}
+            message={riskMessage}
+          />
         </section>
 
         <section>
@@ -183,7 +189,7 @@ export default function ResultPanel({
           <SectionTitle icon={Sprout} title="Charts" />
           <ChartsPanel
             yearly={weatherData?.yearly ?? []}
-            isLoading={analysisStatus === "loading"}
+            isLoading={isAnalyzing}
           />
         </section>
 

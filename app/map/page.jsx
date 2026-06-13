@@ -23,23 +23,32 @@ export default function MapPage() {
   const [selectedPoint, setSelectedPoint] = useState(null);
   const [weatherData, setWeatherData] = useState(null);
   const [soilData, setSoilData] = useState(null);
+  const [riskData, setRiskData] = useState(null);
   const [analysisStatus, setAnalysisStatus] = useState("idle");
   const [analysisMessage, setAnalysisMessage] = useState(
     "Select a location to analyze"
   );
   const [soilStatus, setSoilStatus] = useState("idle");
   const [soilMessage, setSoilMessage] = useState("No data yet");
+  const [riskStatus, setRiskStatus] = useState("idle");
+  const [riskMessage, setRiskMessage] = useState(
+    "Alerts will appear after analyzing real API data."
+  );
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   const handlePointSelect = (point) => {
     setSelectedPoint(point);
     setWeatherData(null);
     setSoilData(null);
+    setRiskData(null);
     setAnalysisStatus("idle");
-    setAnalysisMessage(
-      "Location selected. Ready to fetch historical weather and soil data."
-    );
     setSoilStatus("idle");
+    setRiskStatus("idle");
+    setAnalysisMessage(
+      "Location selected. Ready to fetch historical weather, soil, and risk data."
+    );
     setSoilMessage("No data yet");
+    setRiskMessage("Alerts will appear after analyzing real API data.");
   };
 
   const handleAnalyzeLocation = async () => {
@@ -49,18 +58,23 @@ export default function MapPage() {
       return;
     }
 
+    setIsAnalyzing(true);
     setAnalysisStatus("loading");
     setSoilStatus("loading");
+    setRiskStatus("loading");
     setAnalysisMessage("Fetching historical weather data...");
     setSoilMessage("Fetching soil data...");
+    setRiskMessage("Loading seasonal agricultural risk indicators...");
 
-    const [weatherResult, soilResult] = await Promise.allSettled([
+    const [weatherResult, soilResult, riskResult] = await Promise.allSettled([
       fetch(`/api/historical?lat=${selectedPoint.lat}&lng=${selectedPoint.lng}`),
       fetch(`/api/soil?lat=${selectedPoint.lat}&lng=${selectedPoint.lng}`),
+      fetch(`/api/risk?lat=${selectedPoint.lat}&lng=${selectedPoint.lng}`),
     ]);
 
     let weatherSuccess = false;
     let soilSuccess = false;
+    let riskSuccess = false;
 
     if (weatherResult.status === "fulfilled") {
       const weatherJson = await weatherResult.value.json();
@@ -104,11 +118,39 @@ export default function MapPage() {
       setSoilMessage("We could not fetch soil data for this location.");
     }
 
-    if (!weatherSuccess && soilSuccess) {
+    if (riskResult.status === "fulfilled") {
+      const riskJson = await riskResult.value.json();
+
+      if (riskResult.value.ok) {
+        setRiskData(riskJson);
+        setRiskStatus("success");
+        setRiskMessage(
+          riskJson.alerts?.length
+            ? riskJson.summary.notice
+            : "No major seasonal agricultural risks detected for the upcoming months."
+        );
+        riskSuccess = true;
+      } else {
+        setRiskData(null);
+        setRiskStatus("error");
+        setRiskMessage(
+          riskJson.error ||
+            "We could not fetch seasonal agricultural risk guidance."
+        );
+      }
+    } else {
+      setRiskData(null);
+      setRiskStatus("error");
+      setRiskMessage("We could not fetch seasonal agricultural risk guidance.");
+    }
+
+    if (!weatherSuccess && (soilSuccess || riskSuccess)) {
       setAnalysisMessage(
-        "Historical weather data could not be loaded, but soil data is available."
+        "Historical weather data could not be loaded, but other sections are available."
       );
     }
+
+    setIsAnalyzing(false);
   };
 
   return (
@@ -120,6 +162,7 @@ export default function MapPage() {
             <MapSelector
               selectedPoint={selectedPoint}
               analysisStatus={analysisStatus}
+              isAnalyzing={isAnalyzing}
               analysisMessage={analysisMessage}
               onPointSelect={handlePointSelect}
               onAnalyzeLocation={handleAnalyzeLocation}
@@ -128,10 +171,14 @@ export default function MapPage() {
               selectedPoint={selectedPoint}
               weatherData={weatherData}
               soilData={soilData}
+              riskData={riskData}
               analysisStatus={analysisStatus}
               analysisMessage={analysisMessage}
               soilStatus={soilStatus}
               soilMessage={soilMessage}
+              riskStatus={riskStatus}
+              riskMessage={riskMessage}
+              isAnalyzing={isAnalyzing}
               onAnalyzeLocation={handleAnalyzeLocation}
             />
           </div>
