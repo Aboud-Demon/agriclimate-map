@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>AgriClimate Map - Report Preview</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #fbfbe2;
+        }
+        .px-margin { padding-left: 32px; padding-right: 32px; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .report-canvas {
+            box-shadow: 0 10px 25px -5px rgba(27, 94, 32, 0.05), 0 8px 10px -6px rgba(27, 94, 32, 0.05);
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(8px);
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container-low": "#f5f5dc",
+                        "surface-container": "#efefd7",
+                        "background": "#fbfbe2",
+                        "on-tertiary-fixed": "#2c160e",
+                        "tertiary": "#50342c",
+                        "secondary": "#00639a",
+                        "inverse-primary": "#91d78a",
+                        "surface-container-highest": "#e4e4cc",
+                        "on-primary-container": "#90d689",
+                        "surface-container-high": "#eaead1",
+                        "primary-fixed-dim": "#91d78a",
+                        "secondary-fixed": "#cee5ff",
+                        "surface-dim": "#dbdcc3",
+                        "error": "#ba1a1a",
+                        "on-secondary": "#ffffff",
+                        "tertiary-fixed-dim": "#e7bdb1",
+                        "surface-bright": "#fbfbe2",
+                        "on-primary-fixed": "#002203",
+                        "outline": "#717a6d",
+                        "on-error-container": "#93000a",
+                        "primary-container": "#1b5e20",
+                        "secondary-container": "#51b2fe",
+                        "on-primary-fixed-variant": "#0c5216",
+                        "on-tertiary-fixed-variant": "#5d4037",
+                        "surface": "#fbfbe2",
+                        "secondary-fixed-dim": "#96ccff",
+                        "surface-tint": "#2a6b2c",
+                        "on-secondary-container": "#00436a",
+                        "on-background": "#1b1d0e",
+                        "on-secondary-fixed": "#001d32",
+                        "on-tertiary-container": "#e6bcb0",
+                        "on-primary": "#ffffff",
+                        "primary-fixed": "#acf4a4",
+                        "error-container": "#ffdad6",
+                        "tertiary-container": "#694b42",
+                        "inverse-surface": "#303221",
+                        "on-secondary-fixed-variant": "#004a75",
+                        "outline-variant": "#c0c9bb",
+                        "tertiary-fixed": "#ffdbd0",
+                        "on-error": "#ffffff",
+                        "on-surface": "#1b1d0e",
+                        "primary": "#00450d",
+                        "surface-container-lowest": "#ffffff",
+                        "on-surface-variant": "#41493e",
+                        "inverse-on-surface": "#f2f2d9",
+                        "surface-variant": "#e4e4cc",
+                        "on-tertiary": "#ffffff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "md": "24px",
+                        "xs": "4px",
+                        "margin": "32px",
+                        "base": "8px",
+                        "lg": "40px",
+                        "gutter": "24px",
+                        "sm": "12px",
+                        "container-max": "1440px",
+                        "xl": "64px"
+                    },
+                    "fontFamily": {
+                        "headline-xl": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "body-md": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "label-md": ["Inter"],
+                        "label-sm": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-xl": ["40px", {"lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "label-md": ["14px", {"lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "600"}],
+                        "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.04em", "fontWeight": "500"}]
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-background text-on-background min-h-screen flex flex-col">
+<!-- TopNavBar -->
+<header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-margin h-16 shadow-sm bg-surface dark:bg-inverse-surface">
+<div class="flex items-center gap-8">
+<span class="font-headline-md text-headline-md font-bold text-primary dark:text-primary-fixed">AgriClimate Map</span>
+<nav class="hidden md:flex items-center gap-6">
+<a class="font-body-md text-body-md text-on-surface-variant dark:text-outline-variant hover:text-primary dark:hover:text-primary-fixed transition-colors" href="#">Home</a>
+<a class="font-body-md text-body-md text-on-surface-variant dark:text-outline-variant hover:text-primary dark:hover:text-primary-fixed transition-colors" href="#">Map Analysis</a>
+<a class="font-body-md text-body-md text-on-surface-variant dark:text-outline-variant hover:text-primary dark:hover:text-primary-fixed transition-colors" href="#">About</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<button class="material-symbols-outlined text-primary dark:text-inverse-primary p-2">notifications</button>
+<button class="material-symbols-outlined text-primary dark:text-inverse-primary p-2">account_circle</button>
+</div>
+</header>
+<div class="flex flex-1 pt-16">
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-16 h-[calc(100vh-64px)] w-[280px] z-40 py-md flex flex-col bg-surface-container dark:bg-surface-container-highest shadow-md hidden lg:flex">
+<div class="px-6 mb-8">
+<h2 class="font-headline-md text-headline-md font-bold text-primary">Environmental Intelligence</h2>
+<p class="font-label-md text-label-md text-on-surface-variant">Field-level data</p>
+</div>
+<nav class="flex flex-col gap-1">
+<a class="flex items-center gap-3 px-4 py-3 mx-2 text-on-surface-variant hover:bg-surface-container-high transition-all font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined">dashboard</span> Analysis Summary
+                </a>
+<a class="flex items-center gap-3 px-4 py-3 mx-2 text-on-surface-variant hover:bg-surface-container-high transition-all font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined">history</span> Historical Climate
+                </a>
+<a class="flex items-center gap-3 px-4 py-3 mx-2 text-on-surface-variant hover:bg-surface-container-high transition-all font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined">layers</span> Soil Analysis
+                </a>
+<a class="flex items-center gap-3 px-4 py-3 mx-2 text-on-surface-variant hover:bg-surface-container-high transition-all font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined">warning</span> Seasonal Alerts
+                </a>
+<a class="flex items-center gap-3 px-4 py-3 mx-2 bg-primary-container dark:bg-secondary-container text-on-primary-container dark:text-on-secondary-container rounded-lg font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined">assessment</span> Reports
+                </a>
+</nav>
+</aside>
+<!-- Main Canvas -->
+<main class="flex-1 lg:ml-[280px] p-margin max-w-container-max mx-auto w-full">
+<div class="flex justify-between items-end mb-8">
+<div>
+<h1 class="font-headline-lg text-headline-lg text-primary mb-2">Analysis Report Preview</h1>
+<p class="font-body-md text-body-md text-on-surface-variant">Review your environmental intelligence parameters before final export.</p>
+</div>
+<button class="bg-primary hover:bg-primary-container text-on-primary font-label-md text-label-md px-6 py-3 rounded-lg flex items-center gap-2 transition-all active:scale-95 shadow-md">
+<span class="material-symbols-outlined">picture_as_pdf</span>
+                    Export Report
+                </button>
+</div>
+<div class="grid grid-cols-12 gap-gutter">
+<!-- Report Canvas (Bento Style) -->
+<div class="col-span-12 lg:col-span-8 space-y-gutter">
+<!-- Section: Location & Map Preview -->
+<div class="bg-surface-container-lowest rounded-xl p-md border border-outline-variant report-canvas relative overflow-hidden">
+<div class="flex justify-between items-start mb-6">
+<div>
+<span class="text-primary font-label-sm text-label-sm uppercase tracking-wider">01. Geo-Spatial Context</span>
+<h3 class="font-headline-md text-headline-md mt-1">Selected Location</h3>
+</div>
+<span class="font-body-md text-body-md text-outline italic">No location pinned</span>
+</div>
+<div class="h-64 w-full bg-surface-container-low rounded-lg relative flex items-center justify-center overflow-hidden">
+<img class="absolute inset-0 w-full h-full object-cover opacity-40 grayscale" data-alt="A top-down satellite view of expansive agricultural farmlands in a flat valley, showing a patchwork of green and brown fields under a bright noon sun. The visual style is technical and scientific, featuring a subtle digital overlay grid and data points in deep green and soil brown, maintaining a professional climate-analysis aesthetic." data-location="California Central Valley" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBOPBHUmPmWBpayOV3TIuRCOyd0kzRUBKcOiVqJ4EV8gRi1G55wFecW4ncishTeh8A_MPWZfxZGeowvvjWpUwrJJYgXRgCtNZGCZRIVqjcMK4os-GB6NhSa0wm30t7yHEE7TquAT8Fhw0I0nFZYHEBS0zFIK8RWqu0NpIRokD7PuyoO5JO9mGU73incbjLL0O9cByxCarTYLxAVrPgFKl1o2UPipDTCn_XXsdH8Cv_nE395UaIt90sFMsHvbHKt7MPXe9ix3ojwr1E"/>
+<div class="z-10 text-center">
+<span class="material-symbols-outlined text-outline text-4xl mb-2">map</span>
+<p class="font-label-md text-label-md text-on-surface-variant">-- Pending Analysis --</p>
+</div>
+</div>
+</div>
+<!-- Section: Historical & Soil -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-gutter">
+<div class="bg-surface-container-lowest rounded-xl p-md border border-outline-variant report-canvas">
+<div class="flex items-center gap-2 mb-4">
+<span class="material-symbols-outlined text-primary">history</span>
+<h4 class="font-label-md text-label-md text-primary">Historical Climate Summary</h4>
+</div>
+<div class="space-y-4">
+<div class="flex justify-between border-b border-outline-variant pb-2">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Annual Rainfall Avg</span>
+<span class="font-label-md text-label-md">--</span>
+</div>
+<div class="flex justify-between border-b border-outline-variant pb-2">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Peak Temp Range</span>
+<span class="font-label-md text-label-md">--</span>
+</div>
+<div class="flex justify-between border-b border-outline-variant pb-2">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Growing Degree Days</span>
+<span class="font-label-md text-label-md">--</span>
+</div>
+</div>
+</div>
+<div class="bg-surface-container-lowest rounded-xl p-md border border-outline-variant report-canvas">
+<div class="flex items-center gap-2 mb-4">
+<span class="material-symbols-outlined text-primary">layers</span>
+<h4 class="font-label-md text-label-md text-primary">Soil Summary</h4>
+</div>
+<div class="space-y-4">
+<div class="flex justify-between border-b border-outline-variant pb-2">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Composition Type</span>
+<span class="font-label-md text-label-md">No data yet</span>
+</div>
+<div class="flex justify-between border-b border-outline-variant pb-2">
+<span class="font-body-sm text-body-sm text-on-surface-variant">PH Level</span>
+<span class="font-label-md text-label-md">--</span>
+</div>
+<div class="flex justify-between border-b border-outline-variant pb-2">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Organic Matter %</span>
+<span class="font-label-md text-label-md">--</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Section: Seasonal Alerts -->
+<div class="bg-surface-container-lowest rounded-xl p-md border border-outline-variant report-canvas">
+<div class="flex items-center gap-2 mb-6">
+<span class="material-symbols-outlined text-error">warning</span>
+<h4 class="font-label-md text-label-md text-primary">Seasonal Alerts</h4>
+</div>
+<div class="bg-surface-container-low rounded-lg p-xl flex flex-col items-center justify-center border border-dashed border-outline-variant">
+<span class="material-symbols-outlined text-outline-variant text-5xl mb-4">notifications_off</span>
+<p class="font-body-md text-body-md text-on-surface-variant text-center">No active alerts found for this region.<br/><span class="text-sm opacity-60">Run a simulation to generate risk assessments.</span></p>
+</div>
+</div>
+</div>
+<!-- Right Column: Sidebar Recommendations -->
+<div class="col-span-12 lg:col-span-4 space-y-gutter">
+<div class="bg-primary text-on-primary rounded-xl p-md report-canvas sticky top-24">
+<div class="flex items-center gap-2 mb-6">
+<span class="material-symbols-outlined">lightbulb</span>
+<h4 class="font-headline-md text-headline-md">Recommendations</h4>
+</div>
+<div class="space-y-6">
+<div class="bg-primary-container rounded-lg p-4">
+<h5 class="font-label-md text-label-md text-on-primary-container mb-1">Crop Viability</h5>
+<p class="font-body-sm text-body-sm text-primary-fixed opacity-90 italic">Awaiting location input to calculate specific crop success indices.</p>
+</div>
+<div class="bg-primary-container rounded-lg p-4">
+<h5 class="font-label-md text-label-md text-on-primary-container mb-1">Irrigation Strategy</h5>
+<p class="font-body-sm text-body-sm text-primary-fixed opacity-90 italic">Simulation required for seasonal water requirements.</p>
+</div>
+<hr class="border-on-primary-container opacity-30"/>
+<div class="pt-2">
+<p class="font-label-sm text-label-sm mb-4">REPORT STATUS</p>
+<div class="flex items-center gap-3 mb-4">
+<div class="w-full h-2 bg-primary-container rounded-full overflow-hidden">
+<div class="w-1/4 h-full bg-secondary-container"></div>
+</div>
+<span class="font-label-sm text-label-sm">25%</span>
+</div>
+<p class="font-body-sm text-body-sm opacity-80">This report is incomplete. Please complete the Analysis Summary and Soil inputs to enable full intelligence mapping.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+<!-- Footer -->
+<footer class="w-full py-base px-margin flex flex-col md:flex-row justify-between items-center bg-surface-container-low dark:bg-surface-dim border-t border-outline-variant dark:border-outline mt-12">
+<div class="mb-4 md:mb-0">
+<p class="font-label-sm text-label-sm text-on-surface-variant">© 2024 AgriClimate Map. Precise agricultural intelligence for sustainable farming. Data provided for research purposes.</p>
+</div>
+<div class="flex gap-6">
+<a class="font-label-sm text-label-sm text-on-surface-variant hover:text-primary dark:hover:text-primary-fixed underline" href="#">Privacy Policy</a>
+<a class="font-label-sm text-label-sm text-on-surface-variant hover:text-primary dark:hover:text-primary-fixed underline" href="#">Terms of Service</a>
+<a class="font-label-sm text-label-sm text-on-surface-variant hover:text-primary dark:hover:text-primary-fixed underline" href="#">Data Sources</a>
+</div>
+</footer>
+<script>
+        // Subtle micro-interaction for Export button
+        const exportBtn = document.querySelector('button');
+        exportBtn.addEventListener('click', () => {
+            exportBtn.innerHTML = '<span class="material-symbols-outlined animate-spin">sync</span> Generating PDF...';
+            setTimeout(() => {
+                exportBtn.innerHTML = '<span class="material-symbols-outlined">check_circle</span> Report Exported';
+                setTimeout(() => {
+                    exportBtn.innerHTML = '<span class="material-symbols-outlined">picture_as_pdf</span> Export Report';
+                }, 2000);
+            }, 1500);
+        });
+    </script>
+</body></html>

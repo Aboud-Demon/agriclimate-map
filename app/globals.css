@@ -1,26 +1,87 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #fbfbe2;
+  --foreground: #1b1d0e;
+  --color-background: #fbfbe2;
+  --color-foreground: #1b1d0e;
+  --color-foreground-muted: #41493e;
+  --color-foreground-soft: #717a6d;
+  --color-surface-1: #ffffff;
+  --color-surface-2: #f5f5dc;
+  --color-surface-3: #efefd7;
+  --color-surface-4: #e4e4cc;
+  --color-primary: #00450d;
+  --color-primary-strong: #1b5e20;
+  --color-primary-soft: #acf4a4;
+  --color-secondary: #00639a;
+  --color-tertiary: #50342c;
+  --color-outline: #717a6d;
+  --color-outline-soft: #c0c9bb;
+  --color-danger: #ba1a1a;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: "Geist", "Geist Fallback", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Geist Mono", "Geist Mono Fallback", ui-monospace, monospace;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-geist-sans), sans-serif;
+}
+
+a,
+button,
+input {
+  transition-property: color, background-color, border-color, transform,
+    box-shadow, opacity;
+  transition-duration: 180ms;
+}
+
+.leaflet-container {
+  height: 100%;
+  width: 100%;
+  font-family: inherit;
+  background: #eef0d7;
+}
+
+.leaflet-control-attribution {
+  font-size: 10px;
+}
+
+.agriclimate-marker {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 18px 38px -20px rgba(0, 69, 13, 0.8);
+  border: 1px solid rgba(12, 82, 22, 0.12);
+}
+
+.agriclimate-marker svg {
+  color: #ba1a1a;
+}
+
+.leaflet-popup-content-wrapper {
+  border-radius: 16px;
+  border: 1px solid var(--color-outline-soft);
+  box-shadow: 0 16px 36px -24px rgba(27, 94, 32, 0.45);
+}
+
+.leaflet-popup-content {
+  margin: 12px 14px;
+  font-size: 12px;
+  line-height: 1.5;
 }

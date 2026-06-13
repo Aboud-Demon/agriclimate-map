@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-container-low": "#f5f5dc",
+                    "surface-container": "#efefd7",
+                    "background": "#fbfbe2",
+                    "on-tertiary-fixed": "#2c160e",
+                    "tertiary": "#50342c",
+                    "secondary": "#00639a",
+                    "inverse-primary": "#91d78a",
+                    "surface-container-highest": "#e4e4cc",
+                    "on-primary-container": "#90d689",
+                    "surface-container-high": "#eaead1",
+                    "primary-fixed-dim": "#91d78a",
+                    "secondary-fixed": "#cee5ff",
+                    "surface-dim": "#dbdcc3",
+                    "error": "#ba1a1a",
+                    "on-secondary": "#ffffff",
+                    "tertiary-fixed-dim": "#e7bdb1",
+                    "surface-bright": "#fbfbe2",
+                    "on-primary-fixed": "#002203",
+                    "outline": "#717a6d",
+                    "on-error-container": "#93000a",
+                    "primary-container": "#1b5e20",
+                    "secondary-container": "#51b2fe",
+                    "on-primary-fixed-variant": "#0c5216",
+                    "on-tertiary-fixed-variant": "#5d4037",
+                    "surface": "#fbfbe2",
+                    "secondary-fixed-dim": "#96ccff",
+                    "surface-tint": "#2a6b2c",
+                    "on-secondary-container": "#00436a",
+                    "on-background": "#1b1d0e",
+                    "on-secondary-fixed": "#001d32",
+                    "on-tertiary-container": "#e6bcb0",
+                    "on-primary": "#ffffff",
+                    "primary-fixed": "#acf4a4",
+                    "error-container": "#ffdad6",
+                    "tertiary-container": "#694b42",
+                    "inverse-surface": "#303221",
+                    "on-secondary-fixed-variant": "#004a75",
+                    "outline-variant": "#c0c9bb",
+                    "tertiary-fixed": "#ffdbd0",
+                    "on-error": "#ffffff",
+                    "on-surface": "#1b1d0e",
+                    "primary": "#00450d",
+                    "surface-container-lowest": "#ffffff",
+                    "on-surface-variant": "#41493e",
+                    "inverse-on-surface": "#f2f2d9",
+                    "surface-variant": "#e4e4cc",
+                    "on-tertiary": "#ffffff"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "md": "24px",
+                    "xs": "4px",
+                    "margin": "32px",
+                    "base": "8px",
+                    "lg": "40px",
+                    "gutter": "24px",
+                    "sm": "12px",
+                    "container-max": "1440px",
+                    "xl": "64px"
+            },
+            "fontFamily": {
+                    "headline-lg-mobile": ["Inter"],
+                    "headline-xl": ["Inter"],
+                    "headline-lg": ["Inter"],
+                    "body-md": ["Inter"],
+                    "label-sm": ["Inter"],
+                    "label-md": ["Inter"],
+                    "headline-md": ["Inter"],
+                    "body-sm": ["Inter"],
+                    "body-lg": ["Inter"]
+            },
+            "fontSize": {
+                    "headline-lg-mobile": ["28px", {"lineHeight": "36px", "fontWeight": "600"}],
+                    "headline-xl": ["40px", {"lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.04em", "fontWeight": "500"}],
+                    "label-md": ["14px", {"lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "600"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .map-mesh {
+            background-image: radial-gradient(#717a6d 0.5px, transparent 0.5px);
+            background-size: 24px 24px;
+        }
+        .backdrop-glass {
+            backdrop-filter: blur(12px);
+            background-color: rgba(251, 251, 226, 0.85);
+        }
+        .custom-shadow {
+            box-shadow: 0 10px 25px -5px rgba(27, 94, 32, 0.08), 0 8px 10px -6px rgba(27, 94, 32, 0.05);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-md selection:bg-primary-fixed-dim selection:text-primary">
+<!-- TopNavBar -->
+<nav class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-margin h-16 shadow-sm bg-surface">
+<div class="flex items-center gap-xl">
+<span class="font-headline-md text-headline-md font-bold text-primary">AgriClimate Map</span>
+<div class="hidden md:flex gap-md">
+<a class="font-body-md text-body-md text-primary border-b-2 border-primary font-semibold transition-colors" href="#">Home</a>
+<a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors" href="#">Map Analysis</a>
+<a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors" href="#">About</a>
+</div>
+</div>
+<div class="flex items-center gap-sm">
+<button class="p-xs text-on-surface-variant hover:text-primary transition-all active:scale-95">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="p-xs text-on-surface-variant hover:text-primary transition-all active:scale-95">
+<span class="material-symbols-outlined" data-icon="account_circle">account_circle</span>
+</button>
+</div>
+</nav>
+<main class="pt-16">
+<!-- Hero Section -->
+<section class="relative min-h-[870px] flex items-center overflow-hidden">
+<!-- Background Map Visual Placeholder -->
+<div class="absolute inset-0 z-0 map-mesh opacity-30"></div>
+<div class="absolute inset-0 z-0 bg-gradient-to-tr from-surface via-transparent to-surface-container-low opacity-60"></div>
+<div class="container mx-auto px-margin relative z-10 max-w-container-max">
+<div class="grid lg:grid-cols-2 gap-xl items-center">
+<div class="max-w-2xl">
+<span class="inline-flex items-center px-sm py-xs rounded-full bg-primary-fixed text-on-primary-fixed font-label-sm text-label-sm mb-md tracking-wider">
+                            ENVIRONMENTAL INTELLIGENCE V2.4
+                        </span>
+<h1 class="font-headline-xl text-headline-xl text-primary mb-md leading-tight">
+                            Analyze Land, Weather, and Soil Intelligence from Any Map Location
+                        </h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant mb-lg leading-relaxed">
+                            Select any location on the map to analyze historical weather, soil properties, UV exposure, and agricultural risk alerts for the coming months.
+                        </p>
+<div class="flex flex-wrap gap-md">
+<button class="bg-primary-container text-on-primary-container px-xl py-md rounded-lg font-label-md text-label-md hover:opacity-90 transition-all active:scale-95 shadow-md">
+                                Start Analysis
+                            </button>
+<button class="border-2 border-tertiary text-tertiary px-xl py-md rounded-lg font-label-md text-label-md hover:bg-surface-container transition-all active:scale-95">
+                                View Platform
+                            </button>
+</div>
+</div>
+<div class="hidden lg:block relative">
+<div class="w-full h-[500px] rounded-xl overflow-hidden custom-shadow border border-outline-variant bg-surface-container relative group">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" data-alt="A sophisticated satellite map view of expansive agricultural farmlands showcasing varying green crop circles and rectangular fields. The lighting is bright and clear, reflecting a high-noon daylight that emphasizes the intricate textures of the terrain. The aesthetic is clean and professional, using a natural color palette of deep greens, earthy browns, and soft yellows, consistent with a modern corporate ag-tech dashboard interface. The composition is a top-down aerial perspective with a slight digital tilt for depth." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBrsVb69yuAZL4uEDSV3YQLiHg2Dr3DHf0T3R-632OLkaj16kx_TSQoVHrZwdCH4ZETiYpYqtm0q9CG_Vwrw8HiLr_-A12CzHYW1u0OmKcr7NvRy3_83qVFb6tXJl3xaWZhWzcoDSMIBZJZRW1pHjZVPJNxRff8YcxOzihbwtM5r3JO3wmh1wqOUqG2SAqbPtfszGqXG32GclVXzv7-7LPrQa_LT48D_6T2tlC7F2K0xP_Hi_FqXePbqB8BzEaYReP_X-xaa6jKmjU"/>
+<div class="absolute inset-0 bg-gradient-to-t from-primary/20 to-transparent"></div>
+<!-- Floating Data Card Micro-interaction -->
+<div class="absolute top-md right-md backdrop-glass p-md rounded-lg custom-shadow border border-white/50 animate-bounce-subtle">
+<div class="flex items-center gap-sm mb-xs">
+<span class="material-symbols-outlined text-primary text-xl" data-icon="water_drop">water_drop</span>
+<span class="font-label-md text-label-md text-primary">Soil Moisture</span>
+</div>
+<div class="font-headline-md text-headline-md text-on-surface">42.8%</div>
+<div class="text-secondary font-label-sm text-label-sm">+2.4% Optimal</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Feature Grid Section -->
+<section class="py-xl bg-surface-container-low">
+<div class="container mx-auto px-margin max-w-container-max">
+<div class="flex flex-col md:flex-row justify-between items-end mb-lg gap-md">
+<div class="max-w-xl">
+<h2 class="font-headline-lg text-headline-lg text-primary mb-sm">Comprehensive Agricultural Insights</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">Precision data layers designed for large-scale farm management and climate research.</p>
+</div>
+<div class="flex gap-xs">
+<div class="w-12 h-1 rounded-full bg-primary"></div>
+<div class="w-4 h-1 rounded-full bg-outline-variant"></div>
+<div class="w-4 h-1 rounded-full bg-outline-variant"></div>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-gutter">
+<!-- Historical Weather Analysis -->
+<div class="bg-white p-md rounded-xl border border-outline-variant custom-shadow hover:translate-y-[-4px] transition-all duration-300 group">
+<div class="w-12 h-12 rounded-lg bg-surface-container-highest flex items-center justify-center mb-md group-hover:bg-primary-container transition-colors">
+<span class="material-symbols-outlined text-primary group-hover:text-on-primary-container" data-icon="history">history</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface mb-sm">Historical Weather Analysis</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-md">Access decades of localized climate data including precipitation trends, temperature variance, and frost patterns to inform planting strategies.</p>
+<div class="h-16 w-full flex items-end gap-1 opacity-40">
+<!-- Sparkline Decoration -->
+<div class="w-full bg-primary-container h-[20%]" style="height: 40%"></div>
+<div class="w-full bg-primary-container h-[40%]" style="height: 60%"></div>
+<div class="w-full bg-primary-container h-[30%]" style="height: 45%"></div>
+<div class="w-full bg-primary-container h-[60%]" style="height: 80%"></div>
+<div class="w-full bg-primary-container h-[50%]" style="height: 70%"></div>
+<div class="w-full bg-primary-container h-[80%]" style="height: 95%"></div>
+<div class="w-full bg-primary-container h-[40%]" style="height: 55%"></div>
+</div>
+</div>
+<!-- Soil Properties -->
+<div class="bg-white p-md rounded-xl border border-outline-variant custom-shadow hover:translate-y-[-4px] transition-all duration-300 group">
+<div class="w-12 h-12 rounded-lg bg-surface-container-highest flex items-center justify-center mb-md group-hover:bg-primary-container transition-colors">
+<span class="material-symbols-outlined text-primary group-hover:text-on-primary-container" data-icon="layers">layers</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface mb-sm">Soil Properties</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-md">Deep analysis of soil composition, pH levels, carbon sequestration potential, and nutrient density for any selected geographical coordinates.</p>
+<div class="flex gap-sm">
+<span class="px-xs py-1 rounded bg-surface-container text-on-surface-variant text-[10px] font-bold">NPK LEVELS</span>
+<span class="px-xs py-1 rounded bg-surface-container text-on-surface-variant text-[10px] font-bold">SALINITY</span>
+</div>
+</div>
+<!-- UV & Solar Radiation -->
+<div class="bg-white p-md rounded-xl border border-outline-variant custom-shadow hover:translate-y-[-4px] transition-all duration-300 group">
+<div class="w-12 h-12 rounded-lg bg-surface-container-highest flex items-center justify-center mb-md group-hover:bg-primary-container transition-colors">
+<span class="material-symbols-outlined text-primary group-hover:text-on-primary-container" data-icon="wb_sunny">wb_sunny</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface mb-sm">UV &amp; Solar Radiation</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-md">Measure daily photoperiods and solar energy accumulation to predict biomass production and optimal light exposure for various crop species.</p>
+<div class="flex items-center gap-xs text-secondary">
+<span class="material-symbols-outlined text-sm" data-icon="insights">insights</span>
+<span class="text-[10px] font-bold">SOLAR EFFICIENCY INDEXING</span>
+</div>
+</div>
+<!-- Seasonal Agricultural Alerts -->
+<div class="bg-white p-md rounded-xl border border-outline-variant custom-shadow hover:translate-y-[-4px] transition-all duration-300 group">
+<div class="w-12 h-12 rounded-lg bg-surface-container-highest flex items-center justify-center mb-md group-hover:bg-primary-container transition-colors">
+<span class="material-symbols-outlined text-primary group-hover:text-on-primary-container" data-icon="warning">warning</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface mb-sm">Seasonal Agricultural Alerts</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-md">Real-time risk assessments for impending frost, heat stress, drought periods, and pest migration patterns based on predictive climate modeling.</p>
+<div class="inline-flex items-center px-sm py-1 rounded-full bg-error-container text-on-error-container text-[10px] font-bold">
+                            PREDICTIVE RISK ENGINE ACTIVE
+                        </div>
+</div>
+<!-- Smart Irrigation Recommendations -->
+<div class="bg-white p-md rounded-xl border border-outline-variant custom-shadow hover:translate-y-[-4px] transition-all duration-300 group">
+<div class="w-12 h-12 rounded-lg bg-surface-container-highest flex items-center justify-center mb-md group-hover:bg-primary-container transition-colors">
+<span class="material-symbols-outlined text-primary group-hover:text-on-primary-container" data-icon="water_ph">water_ph</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface mb-sm">Smart Irrigation Recommendations</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-md">Automated water requirement calculations that integrate evapotranspiration rates with soil water-holding capacity for efficient resource usage.</p>
+<div class="w-full bg-outline-variant/20 h-1 rounded-full overflow-hidden mt-md">
+<div class="bg-secondary h-full w-[75%]"></div>
+</div>
+</div>
+<!-- Platform Integration Card (Bonus) -->
+<div class="bg-primary-container p-md rounded-xl custom-shadow flex flex-col justify-between overflow-hidden relative group cursor-pointer">
+<div class="relative z-10">
+<h3 class="font-headline-md text-headline-md text-on-primary-container mb-sm">Start Your Regional Analysis</h3>
+<p class="font-body-sm text-body-sm text-on-primary-container/80">Connect your local sensors or use our global satellite network to begin mapping your fields.</p>
+</div>
+<div class="mt-lg relative z-10">
+<button class="bg-white text-primary px-md py-sm rounded-lg font-label-md text-label-md w-full active:scale-95 transition-transform">
+                                Open Interactive Map
+                            </button>
+</div>
+<!-- Abstract Graphic -->
+<div class="absolute -bottom-4 -right-4 w-32 h-32 bg-primary-fixed opacity-10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
+</div>
+</div>
+</div>
+</section>
+<!-- Secondary CTA Section -->
+<section class="py-xl overflow-hidden bg-background">
+<div class="container mx-auto px-margin max-w-container-max">
+<div class="bg-surface-container rounded-2xl p-xl flex flex-col items-center text-center relative">
+<img class="absolute inset-0 w-full h-full object-cover opacity-10 pointer-events-none" data-alt="A macro close-up of a vibrant green seedling sprouting from dark, nutrient-rich soil. The focus is sharp on the delicate leaf veins and dew drops, with a soft-focus agricultural background. The lighting is early morning golden hour, casting long, warm shadows and creating a sense of hope and precision science. The color palette emphasizes organic greens and deep browns, contrasted with technical UI overlays that suggest moisture and temperature data points." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCbNiMyuKikF0GMBaHeLJ7C5OJs2T2GE_gU1eun5o-cblZcfisqUtPLghQIxVPptxWdr-vS823a6K7fma7pJIjC_TBJMG08zBAQBpVMb2rrJQXBRPR5pjdYJOv9DNIRLzGOQIRdzcB13n7GdQIwELoQkEr0-9Xqez4sRnjgfm5iyeblqXzw6T8r_jqAgUeL3XdZCfKNpkxVUlj-BmVQDr7xdX7FKxaYVx5xVUz-eit6TwoPuHkK-1Dppe7GuKOHvivE_GVrJc_Jfo8"/>
+<h2 class="font-headline-lg text-headline-lg text-primary mb-md max-w-2xl relative z-10">Ready to optimize your agricultural yield with precision intelligence?</h2>
+<p class="font-body-lg text-body-lg text-on-surface-variant mb-lg max-w-3xl relative z-10">Join over 1,500 research institutions and commercial farming operations using AgriClimate Map to mitigate risk and increase operational sustainability.</p>
+<div class="flex gap-md relative z-10">
+<button class="bg-primary-container text-on-primary-container px-xl py-md rounded-lg font-label-md text-label-md shadow-lg active:scale-95 transition-all">
+                            Access Full Dashboard
+                        </button>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="w-full py-base px-margin flex justify-between items-center bg-surface-container-low border-t border-outline-variant">
+<div class="flex flex-col gap-xs">
+<span class="font-headline-md text-headline-md font-bold text-primary">AgriClimate Map</span>
+<p class="font-label-sm text-label-sm text-on-surface-variant">© 2024 AgriClimate Map. Precise agricultural intelligence for sustainable farming. Data provided for research purposes.</p>
+</div>
+<div class="flex gap-md">
+<a class="font-label-sm text-label-sm text-on-surface-variant hover:text-primary underline transition-colors" href="#">Privacy Policy</a>
+<a class="font-label-sm text-label-sm text-on-surface-variant hover:text-primary underline transition-colors" href="#">Terms of Service</a>
+<a class="font-label-sm text-label-sm text-on-surface-variant hover:text-primary underline transition-colors" href="#">Data Sources</a>
+</div>
+</footer>
+<script>
+        // Micro-interactions and subtle parallax
+        document.addEventListener('mousemove', (e) => {
+            const moveX = (e.clientX - window.innerWidth / 2) * 0.005;
+            const moveY = (e.clientY - window.innerHeight / 2) * 0.005;
+            
+            const mesh = document.querySelector('.map-mesh');
+            if (mesh) {
+                mesh.style.transform = `translate(${moveX}px, ${moveY}px)`;
+            }
+        });
+
+        // Entrance animations for cards
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.remove('opacity-0', 'translate-y-10');
+                    entry.target.classList.add('opacity-100', 'translate-y-0');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.grid > div').forEach(card => {
+            card.classList.add('opacity-0', 'translate-y-10', 'transition-all', 'duration-700');
+            observer.observe(card);
+        });
+    </script>
+</body></html>

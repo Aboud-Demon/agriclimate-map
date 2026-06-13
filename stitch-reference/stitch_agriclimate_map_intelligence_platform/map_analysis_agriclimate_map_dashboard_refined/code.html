@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>AgriClimate Map | Map Analysis Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        /* Custom scrollbar for data density */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #c0c9bb; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #717a6d; }
+        
+        .map-grid-overlay {
+            background-image: radial-gradient(circle, #e0e0e0 1px, transparent 1px);
+            background-size: 30px 30px;
+        }
+
+        .map-tile-bg {
+            background-color: #f0f0e0;
+            background-image: 
+                linear-gradient(#e5e7eb 1px, transparent 1px),
+                linear-gradient(90deg, #e5e7eb 1px, transparent 1px);
+            background-size: 50px 50px;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container-low": "#f5f5dc",
+                        "surface-container": "#efefd7",
+                        "background": "#fbfbe2",
+                        "on-tertiary-fixed": "#2c160e",
+                        "tertiary": "#50342c",
+                        "secondary": "#00639a",
+                        "inverse-primary": "#91d78a",
+                        "surface-container-highest": "#e4e4cc",
+                        "on-primary-container": "#90d689",
+                        "surface-container-high": "#eaead1",
+                        "primary-fixed-dim": "#91d78a",
+                        "secondary-fixed": "#cee5ff",
+                        "surface-dim": "#dbdcc3",
+                        "error": "#ba1a1a",
+                        "on-secondary": "#ffffff",
+                        "tertiary-fixed-dim": "#e7bdb1",
+                        "surface-bright": "#fbfbe2",
+                        "on-primary-fixed": "#002203",
+                        "outline": "#717a6d",
+                        "on-error-container": "#93000a",
+                        "primary-container": "#1b5e20",
+                        "secondary-container": "#51b2fe",
+                        "on-primary-fixed-variant": "#0c5216",
+                        "on-tertiary-fixed-variant": "#5d4037",
+                        "surface": "#fbfbe2",
+                        "secondary-fixed-dim": "#96ccff",
+                        "surface-tint": "#2a6b2c",
+                        "on-secondary-container": "#00436a",
+                        "on-background": "#1b1d0e",
+                        "on-secondary-fixed": "#001d32",
+                        "on-tertiary-container": "#e6bcb0",
+                        "on-primary": "#ffffff",
+                        "primary-fixed": "#acf4a4",
+                        "error-container": "#ffdad6",
+                        "tertiary-container": "#694b42",
+                        "inverse-surface": "#303221",
+                        "on-secondary-fixed-variant": "#004a75",
+                        "outline-variant": "#c0c9bb",
+                        "tertiary-fixed": "#ffdbd0",
+                        "on-error": "#ffffff",
+                        "on-surface": "#1b1d0e",
+                        "primary": "#00450d",
+                        "surface-container-lowest": "#ffffff",
+                        "on-surface-variant": "#41493e",
+                        "inverse-on-surface": "#f2f2d9",
+                        "surface-variant": "#e4e4cc",
+                        "on-tertiary": "#ffffff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "md": "24px",
+                        "xs": "4px",
+                        "margin": "32px",
+                        "base": "8px",
+                        "lg": "40px",
+                        "gutter": "24px",
+                        "sm": "12px",
+                        "container-max": "1440px",
+                        "xl": "64px"
+                    },
+                    "fontFamily": {
+                        "headline-xl": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "body-md": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "label-md": ["Inter"],
+                        "label-sm": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-xl": ["40px", {"lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "label-md": ["14px", {"lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "600"}],
+                        "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.04em", "fontWeight": "500"}]
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-background text-on-background font-body-md selection:bg-primary-fixed selection:text-on-primary-fixed overflow-hidden h-screen flex flex-col">
+<!-- TopNavBar -->
+<header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-margin h-16 shadow-sm bg-surface dark:bg-inverse-surface">
+<div class="flex items-center gap-base">
+<span class="font-headline-md text-headline-md font-bold text-primary dark:text-primary-fixed">AgriClimate Map</span>
+</div>
+<nav class="hidden md:flex items-center gap-lg">
+<a class="font-body-md text-body-md text-on-surface-variant dark:text-outline-variant hover:text-primary dark:hover:text-primary-fixed transition-colors" href="#">Home</a>
+<a class="font-body-md text-body-md text-primary dark:text-primary-fixed border-b-2 border-primary font-semibold transition-colors" href="#">Map Analysis</a>
+<a class="font-body-md text-body-md text-on-surface-variant dark:text-outline-variant hover:text-primary dark:hover:text-primary-fixed transition-colors" href="#">About</a>
+</nav>
+<div class="flex items-center gap-md">
+<button class="material-symbols-outlined text-on-surface-variant" data-icon="notifications">notifications</button>
+<button class="material-symbols-outlined text-on-surface-variant" data-icon="account_circle">account_circle</button>
+</div>
+</header>
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-16 h-[calc(100vh-64px)] w-[280px] z-40 py-md flex flex-col shadow-md bg-surface-container dark:bg-surface-container-highest">
+<div class="px-md mb-lg">
+<h2 class="font-headline-md text-headline-md font-bold text-primary">Environmental Intelligence</h2>
+<p class="font-label-md text-label-md text-on-surface-variant">Field-level data</p>
+</div>
+<div class="flex flex-col gap-xs flex-grow">
+<a class="flex items-center gap-sm py-3 px-4 bg-primary-container dark:bg-secondary-container text-on-primary-container dark:text-on-secondary-container rounded-lg mx-2 Active:scale-95 duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-label-md text-label-md">Analysis Summary</span>
+</a>
+<a class="flex items-center gap-sm py-3 px-4 text-on-surface-variant dark:text-outline-variant hover:bg-surface-container-high mx-2 transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="history">history</span>
+<span class="font-label-md text-label-md">Historical Climate</span>
+</a>
+<a class="flex items-center gap-sm py-3 px-4 text-on-surface-variant dark:text-outline-variant hover:bg-surface-container-high mx-2 transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="layers">layers</span>
+<span class="font-label-md text-label-md">Soil Analysis</span>
+</a>
+<a class="flex items-center gap-sm py-3 px-4 text-on-surface-variant dark:text-outline-variant hover:bg-surface-container-high mx-2 transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="warning">warning</span>
+<span class="font-label-md text-label-md">Seasonal Alerts</span>
+</a>
+<a class="flex items-center gap-sm py-3 px-4 text-on-surface-variant dark:text-outline-variant hover:bg-surface-container-high mx-2 transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="assessment">assessment</span>
+<span class="font-label-md text-label-md">Reports</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Layout -->
+<main class="ml-[280px] mt-16 flex-grow flex flex-col h-[calc(100vh-128px)] overflow-hidden">
+<!-- Dashboard Top Header / Search Area -->
+<div class="p-md bg-white border-b border-outline-variant flex flex-wrap items-center justify-between gap-md shadow-sm z-10">
+<div class="flex-grow max-w-2xl relative">
+<span class="absolute left-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-outline" data-icon="search">search</span>
+<input class="w-full pl-12 pr-4 py-3 bg-surface-container-low border border-outline-variant rounded-full font-body-md focus:ring-2 focus:ring-primary focus:border-transparent outline-none" placeholder="Search location or select on map" type="text"/>
+</div>
+<button class="flex items-center gap-xs px-md py-3 bg-secondary text-white rounded-full font-label-md hover:opacity-90 transition-all shadow-md active:scale-95">
+<span class="material-symbols-outlined" data-icon="my_location">my_location</span>
+                Use Current Location
+            </button>
+</div>
+<!-- Split Screen: Map & Panel -->
+<div class="flex flex-grow overflow-hidden">
+<!-- Center Left: Map View -->
+<div class="flex-grow relative bg-surface-container overflow-hidden map-tile-bg">
+<!-- Embedded Map Mockup -->
+<div class="absolute inset-0 z-0">
+<!-- Grid Lines Layer -->
+<div class="absolute inset-0 map-grid-overlay opacity-40"></div>
+<!-- Placeholder Terrain Map Elements -->
+<div class="absolute inset-0 opacity-20 pointer-events-none">
+<svg class="w-full h-full" viewbox="0 0 1000 1000" xmlns="http://www.w3.org/2000/svg">
+<!-- Simulated Roads -->
+<path d="M0 200 L1000 250 M400 0 L450 1000 M800 0 L750 1000" fill="none" stroke="#94a3b8" stroke-width="2"></path>
+<!-- Simulated Terrain Patches -->
+<rect fill="#dcfce7" height="150" width="200" x="100" y="300"></rect>
+<rect fill="#fef9c3" height="250" width="300" x="600" y="100"></rect>
+<rect fill="#f0fdf4" height="200" width="400" x="200" y="600"></rect>
+</svg>
+</div>
+<!-- Central Location Marker Placeholder -->
+<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-full flex flex-col items-center">
+<div class="relative">
+<span class="material-symbols-outlined text-error text-5xl drop-shadow-xl" style="font-variation-settings: 'FILL' 1;">location_on</span>
+<div class="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-full bg-white px-3 py-1 rounded-lg shadow-lg border border-outline-variant whitespace-nowrap mb-2">
+<p class="text-[11px] font-bold text-on-surface">Precision Point A-01</p>
+</div>
+</div>
+<div class="w-2 h-2 bg-black/20 rounded-full blur-[2px] mt-[-4px]"></div>
+</div>
+</div>
+<!-- Map UI Controls -->
+<div class="absolute top-md right-md z-20 flex flex-col gap-xs">
+<div class="bg-white/95 backdrop-blur-sm border border-outline-variant rounded-lg shadow-xl p-1 flex flex-col gap-1">
+<button class="w-10 h-10 flex items-center justify-center hover:bg-surface-container transition-colors rounded material-symbols-outlined text-on-surface" data-icon="add">add</button>
+<div class="h-px bg-outline-variant mx-2"></div>
+<button class="w-10 h-10 flex items-center justify-center hover:bg-surface-container transition-colors rounded material-symbols-outlined text-on-surface" data-icon="remove">remove</button>
+</div>
+<button class="w-10 h-10 bg-white/95 backdrop-blur-sm border border-outline-variant rounded-lg shadow-xl flex items-center justify-center hover:bg-surface-container transition-colors material-symbols-outlined text-on-surface" data-icon="layers">layers</button>
+<button class="w-10 h-10 bg-white/95 backdrop-blur-sm border border-outline-variant rounded-lg shadow-xl flex items-center justify-center hover:bg-surface-container transition-colors material-symbols-outlined text-on-surface" data-icon="terrain">terrain</button>
+</div>
+<!-- Floating Coordinates Display -->
+<div class="absolute bottom-md left-md z-20 bg-white/90 backdrop-blur-md border border-outline-variant p-4 rounded-xl shadow-xl min-w-[240px]">
+<div class="flex items-center justify-between mb-2">
+<span class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Map Coordinates</span>
+<span class="material-symbols-outlined text-primary" data-icon="location_on" style="font-variation-settings: 'FILL' 1;">location_on</span>
+</div>
+<div class="flex gap-md">
+<div>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Latitude</p>
+<p class="font-headline-md text-headline-md text-on-surface">--</p>
+</div>
+<div>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Longitude</p>
+<p class="font-headline-md text-headline-md text-on-surface">--</p>
+</div>
+</div>
+<p class="mt-2 font-body-sm text-body-sm text-on-surface-variant italic border-t border-outline-variant pt-2">Select a point on the map to enable analysis.</p>
+</div>
+</div>
+<!-- Center Right: Scrollable Results Panel -->
+<div class="w-[480px] bg-white border-l border-outline-variant flex flex-col shadow-inner">
+<div class="overflow-y-auto flex-grow p-md">
+<!-- Analyze Button (Inactive) -->
+<button class="w-full py-4 mb-md bg-outline-variant text-white font-headline-md rounded-xl cursor-not-allowed opacity-60 flex items-center justify-center gap-sm">
+<span class="material-symbols-outlined" data-icon="analytics">analytics</span>
+                        Analyze Location
+                    </button>
+<!-- Section A: Location Summary -->
+<section class="mb-lg">
+<div class="flex items-center gap-xs mb-md">
+<span class="material-symbols-outlined text-primary" data-icon="location_searching">location_searching</span>
+<h3 class="font-label-md text-label-md text-primary uppercase">Location Summary</h3>
+</div>
+<div class="bg-surface-container-low border border-outline-variant p-md rounded-xl space-y-sm">
+<div class="flex justify-between border-b border-white/50 pb-2">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Name</span>
+<span class="font-label-md text-label-md">--</span>
+</div>
+<div class="flex justify-between border-b border-white/50 pb-2">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Lat/Long</span>
+<span class="font-label-md text-label-md">--</span>
+</div>
+<div class="flex justify-between border-b border-white/50 pb-2">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Period</span>
+<span class="font-label-md text-label-md">Last 5 years</span>
+</div>
+<div class="flex justify-between">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Status</span>
+<span class="inline-flex items-center gap-1 font-label-md text-label-md text-on-surface-variant italic">
+<span class="w-2 h-2 rounded-full bg-outline-variant animate-pulse"></span>
+                                    Waiting for location
+                                </span>
+</div>
+</div>
+</section>
+<!-- Section B: Historical Weather -->
+<section class="mb-lg">
+<div class="flex items-center gap-xs mb-md">
+<span class="material-symbols-outlined text-primary" data-icon="thermostat">thermostat</span>
+<h3 class="font-label-md text-label-md text-primary uppercase">Historical Weather</h3>
+</div>
+<div class="grid grid-cols-2 gap-sm">
+<div class="bg-white border border-outline-variant p-sm rounded-lg">
+<p class="font-label-sm text-label-sm text-on-surface-variant">Avg Temp</p>
+<p class="font-headline-md text-headline-md">--</p>
+</div>
+<div class="bg-white border border-outline-variant p-sm rounded-lg">
+<p class="font-label-sm text-label-sm text-on-surface-variant">Max Temp</p>
+<p class="font-headline-md text-headline-md">--</p>
+</div>
+<div class="bg-white border border-outline-variant p-sm rounded-lg">
+<p class="font-label-sm text-label-sm text-on-surface-variant">Min Temp</p>
+<p class="font-headline-md text-headline-md">--</p>
+</div>
+<div class="bg-white border border-outline-variant p-sm rounded-lg">
+<p class="font-label-sm text-label-sm text-on-surface-variant">Rainfall</p>
+<p class="font-headline-md text-headline-md">--</p>
+</div>
+<div class="bg-white border border-outline-variant p-sm rounded-lg">
+<p class="font-label-sm text-label-sm text-on-surface-variant">Humidity</p>
+<p class="font-headline-md text-headline-md">--</p>
+</div>
+<div class="bg-white border border-outline-variant p-sm rounded-lg">
+<p class="font-label-sm text-label-sm text-on-surface-variant">Wind Speed</p>
+<p class="font-headline-md text-headline-md">--</p>
+</div>
+</div>
+</section>
+<!-- Section C: Soil Analysis -->
+<section class="mb-lg">
+<div class="flex items-center gap-xs mb-md">
+<span class="material-symbols-outlined text-primary" data-icon="grass">grass</span>
+<h3 class="font-label-md text-label-md text-primary uppercase">Soil Analysis</h3>
+</div>
+<div class="grid grid-cols-3 gap-xs">
+<div class="bg-surface-container-low p-2 rounded border border-outline-variant text-center">
+<p class="text-[10px] uppercase text-on-surface-variant">Moisture</p>
+<p class="font-label-md">--</p>
+</div>
+<div class="bg-surface-container-low p-2 rounded border border-outline-variant text-center">
+<p class="text-[10px] uppercase text-on-surface-variant">Type</p>
+<p class="font-label-md">--</p>
+</div>
+<div class="bg-surface-container-low p-2 rounded border border-outline-variant text-center">
+<p class="text-[10px] uppercase text-on-surface-variant">pH</p>
+<p class="font-label-md">--</p>
+</div>
+<div class="bg-surface-container-low p-2 rounded border border-outline-variant text-center">
+<p class="text-[10px] uppercase text-on-surface-variant">Nitrogen</p>
+<p class="font-label-md">--</p>
+</div>
+<div class="bg-surface-container-low p-2 rounded border border-outline-variant text-center">
+<p class="text-[10px] uppercase text-on-surface-variant">Phosphorus</p>
+<p class="font-label-md">--</p>
+</div>
+<div class="bg-surface-container-low p-2 rounded border border-outline-variant text-center">
+<p class="text-[10px] uppercase text-on-surface-variant">Potassium</p>
+<p class="font-label-md">--</p>
+</div>
+</div>
+<p class="mt-2 text-center text-xs text-on-surface-variant italic">No data yet</p>
+</section>
+<!-- Section D: Seasonal Alerts -->
+<section class="mb-lg">
+<div class="flex items-center gap-xs mb-md">
+<span class="material-symbols-outlined text-primary" data-icon="notification_important">notification_important</span>
+<h3 class="font-label-md text-label-md text-primary uppercase">Seasonal Alerts</h3>
+</div>
+<div class="bg-surface-variant rounded-xl p-lg flex flex-col items-center text-center">
+<span class="material-symbols-outlined text-outline mb-2 scale-150" data-icon="cloud_off">cloud_off</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Alerts will appear after analyzing real API data.</p>
+</div>
+</section>
+<!-- Section E: Charts -->
+<section class="mb-lg">
+<div class="flex items-center gap-xs mb-md">
+<span class="material-symbols-outlined text-primary" data-icon="show_chart">show_chart</span>
+<h3 class="font-label-md text-label-md text-primary uppercase">Trend Analysis</h3>
+</div>
+<div class="h-48 border-2 border-dashed border-outline-variant rounded-xl flex items-center justify-center p-md text-center bg-surface-container-lowest">
+<p class="font-body-sm text-body-sm text-on-surface-variant">Chart will appear after selecting a location.</p>
+</div>
+</section>
+<!-- Section F: AI Recommendations -->
+<section class="mb-md">
+<div class="flex items-center gap-xs mb-md">
+<span class="material-symbols-outlined text-primary" data-icon="smart_toy">smart_toy</span>
+<h3 class="font-label-md text-label-md text-primary uppercase">AI Recommendations</h3>
+</div>
+<div class="bg-primary-container/10 p-md rounded-xl text-on-surface-variant shadow-sm border border-primary/10">
+<div class="flex items-start gap-sm">
+<span class="material-symbols-outlined text-primary" data-icon="tips_and_updates">tips_and_updates</span>
+<p class="font-body-sm text-body-sm">Recommendations will appear after API analysis.</p>
+</div>
+</div>
+</section>
+<!-- Disclaimer -->
+<div class="p-md bg-surface-container text-on-surface-variant text-[11px] leading-relaxed rounded-lg border border-outline-variant">
+<span class="font-bold uppercase block mb-1">Notice:</span>
+                        Seasonal forecasts are agricultural risk indicators based on historical data and forecast models. They are not exact daily weather predictions.
+                    </div>
+</div>
+</div>
+</div>
+</main>
+<!-- Footer -->
+<footer class="fixed bottom-0 left-0 w-full z-50 py-base px-margin flex justify-between items-center bg-surface-container-low dark:bg-surface-dim border-t border-outline-variant dark:border-outline">
+<p class="font-label-sm text-label-sm text-on-surface-variant dark:text-outline-variant">
+            © 2024 AgriClimate Map. Precise agricultural intelligence for sustainable farming.
+        </p>
+<div class="flex gap-md">
+<a class="font-label-sm text-label-sm text-on-surface-variant dark:text-outline-variant hover:text-primary underline transition-colors" href="#">Privacy Policy</a>
+<a class="font-label-sm text-label-sm text-on-surface-variant dark:text-outline-variant hover:text-primary underline transition-colors" href="#">Terms of Service</a>
+<a class="font-label-sm text-label-sm text-on-surface-variant dark:text-outline-variant hover:text-primary underline transition-colors" href="#">Data Sources</a>
+</div>
+</footer>
+</body></html>
