@@ -21,17 +21,25 @@ const MapSelector = dynamic(() => import("@/components/MapSelector"), {
 
 export default function MapPage() {
   const [selectedPoint, setSelectedPoint] = useState(null);
-  const [analysisData, setAnalysisData] = useState(null);
+  const [weatherData, setWeatherData] = useState(null);
+  const [soilData, setSoilData] = useState(null);
   const [analysisStatus, setAnalysisStatus] = useState("idle");
   const [analysisMessage, setAnalysisMessage] = useState(
     "Select a location to analyze"
   );
+  const [soilStatus, setSoilStatus] = useState("idle");
+  const [soilMessage, setSoilMessage] = useState("No data yet");
 
   const handlePointSelect = (point) => {
     setSelectedPoint(point);
-    setAnalysisData(null);
+    setWeatherData(null);
+    setSoilData(null);
     setAnalysisStatus("idle");
-    setAnalysisMessage("Location selected. Ready to fetch historical weather.");
+    setAnalysisMessage(
+      "Location selected. Ready to fetch historical weather and soil data."
+    );
+    setSoilStatus("idle");
+    setSoilMessage("No data yet");
   };
 
   const handleAnalyzeLocation = async () => {
@@ -42,28 +50,63 @@ export default function MapPage() {
     }
 
     setAnalysisStatus("loading");
+    setSoilStatus("loading");
     setAnalysisMessage("Fetching historical weather data...");
+    setSoilMessage("Fetching soil data...");
 
-    try {
-      const response = await fetch(
-        `/api/historical?lat=${selectedPoint.lat}&lng=${selectedPoint.lng}`
-      );
-      const result = await response.json();
+    const [weatherResult, soilResult] = await Promise.allSettled([
+      fetch(`/api/historical?lat=${selectedPoint.lat}&lng=${selectedPoint.lng}`),
+      fetch(`/api/soil?lat=${selectedPoint.lat}&lng=${selectedPoint.lng}`),
+    ]);
 
-      if (!response.ok) {
-        throw new Error(
-          result.error || "We could not fetch historical weather data."
+    let weatherSuccess = false;
+    let soilSuccess = false;
+
+    if (weatherResult.status === "fulfilled") {
+      const weatherJson = await weatherResult.value.json();
+
+      if (weatherResult.value.ok) {
+        setWeatherData(weatherJson);
+        setAnalysisStatus("success");
+        setAnalysisMessage("Historical weather data loaded successfully.");
+        weatherSuccess = true;
+      } else {
+        setWeatherData(null);
+        setAnalysisStatus("error");
+        setAnalysisMessage(
+          weatherJson.error || "We could not fetch historical weather data."
         );
       }
-
-      setAnalysisData(result);
-      setAnalysisStatus("success");
-      setAnalysisMessage("Historical weather data loaded successfully.");
-    } catch (error) {
-      setAnalysisData(null);
+    } else {
+      setWeatherData(null);
       setAnalysisStatus("error");
+      setAnalysisMessage("We could not fetch historical weather data.");
+    }
+
+    if (soilResult.status === "fulfilled") {
+      const soilJson = await soilResult.value.json();
+
+      if (soilResult.value.ok) {
+        setSoilData(soilJson);
+        setSoilStatus("success");
+        setSoilMessage("Soil data loaded successfully.");
+        soilSuccess = true;
+      } else {
+        setSoilData(null);
+        setSoilStatus("error");
+        setSoilMessage(
+          soilJson.error || "No soil data available for this location."
+        );
+      }
+    } else {
+      setSoilData(null);
+      setSoilStatus("error");
+      setSoilMessage("We could not fetch soil data for this location.");
+    }
+
+    if (!weatherSuccess && soilSuccess) {
       setAnalysisMessage(
-        error.message || "We could not fetch historical weather data."
+        "Historical weather data could not be loaded, but soil data is available."
       );
     }
   };
@@ -83,9 +126,12 @@ export default function MapPage() {
             />
             <ResultPanel
               selectedPoint={selectedPoint}
-              analysisData={analysisData}
+              weatherData={weatherData}
+              soilData={soilData}
               analysisStatus={analysisStatus}
               analysisMessage={analysisMessage}
+              soilStatus={soilStatus}
+              soilMessage={soilMessage}
               onAnalyzeLocation={handleAnalyzeLocation}
             />
           </div>

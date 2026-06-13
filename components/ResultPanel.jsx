@@ -30,9 +30,12 @@ function SectionTitle({ icon: Icon, title }) {
 
 export default function ResultPanel({
   selectedPoint,
-  analysisData,
+  weatherData,
+  soilData,
   analysisStatus,
   analysisMessage,
+  soilStatus,
+  soilMessage,
   onAnalyzeLocation,
 }) {
   const coordinates = selectedPoint
@@ -99,8 +102,8 @@ export default function ResultPanel({
                   Analysis Window
                 </span>
                 <span className="font-semibold text-[var(--color-foreground)]">
-                  {analysisData
-                    ? `${analysisData.period.start} to ${analysisData.period.end}`
+                  {weatherData
+                    ? `${weatherData.period.start} to ${weatherData.period.end}`
                     : "Historical Weather - Last 5 Years"}
                 </span>
               </div>
@@ -122,14 +125,18 @@ export default function ResultPanel({
             title="Historical Weather - Last 5 Years"
           />
           <WeatherCards
-            summary={analysisData?.summary}
+            summary={weatherData?.summary}
             isLoading={analysisStatus === "loading"}
           />
         </section>
 
         <section>
           <SectionTitle icon={Leaf} title="Soil Analysis" />
-          <SoilCards />
+          <SoilCards
+            summary={soilData?.summary}
+            isLoading={soilStatus === "loading"}
+            message={soilMessage}
+          />
         </section>
 
         <section>
@@ -175,7 +182,7 @@ export default function ResultPanel({
         <section>
           <SectionTitle icon={Sprout} title="Charts" />
           <ChartsPanel
-            yearly={analysisData?.yearly ?? []}
+            yearly={weatherData?.yearly ?? []}
             isLoading={analysisStatus === "loading"}
           />
         </section>
