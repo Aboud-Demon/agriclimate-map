@@ -85,3 +85,56 @@ input {
   font-size: 12px;
   line-height: 1.5;
 }
+
+@media print {
+  html,
+  body {
+    background: #ffffff;
+    color: #111111;
+  }
+
+  .report-page-shell {
+    background: #ffffff;
+  }
+
+  .report-page-shell header,
+  .report-sidebar,
+  .report-actions {
+    display: none !important;
+  }
+
+  .report-page-main {
+    max-width: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .report-preview {
+    display: block;
+  }
+
+  .report-preview > div {
+    gap: 1rem;
+  }
+
+  .report-hero,
+  .report-print-card {
+    background: #ffffff !important;
+    box-shadow: none !important;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .report-print-card,
+  .report-hero {
+    border-color: #d6d6d6 !important;
+  }
+
+  .report-preview * {
+    color: #111111 !important;
+  }
+
+  .report-preview svg {
+    color: currentColor !important;
+  }
+}
