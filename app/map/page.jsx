@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import { LoaderCircle } from "lucide-react";
 import { useState } from "react";
 
+import { saveLastAnalysis } from "@/lib/lastAnalysisStorage";
 import Navbar from "@/components/Navbar";
 import ResultPanel from "@/components/ResultPanel";
 
@@ -75,9 +76,12 @@ export default function MapPage() {
     let weatherSuccess = false;
     let soilSuccess = false;
     let riskSuccess = false;
+    let weatherJson = null;
+    let soilJson = null;
+    let riskJson = null;
 
     if (weatherResult.status === "fulfilled") {
-      const weatherJson = await weatherResult.value.json();
+      weatherJson = await weatherResult.value.json();
 
       if (weatherResult.value.ok) {
         setWeatherData(weatherJson);
@@ -98,7 +102,7 @@ export default function MapPage() {
     }
 
     if (soilResult.status === "fulfilled") {
-      const soilJson = await soilResult.value.json();
+      soilJson = await soilResult.value.json();
 
       if (soilResult.value.ok) {
         setSoilData(soilJson);
@@ -119,7 +123,7 @@ export default function MapPage() {
     }
 
     if (riskResult.status === "fulfilled") {
-      const riskJson = await riskResult.value.json();
+      riskJson = await riskResult.value.json();
 
       if (riskResult.value.ok) {
         setRiskData(riskJson);
@@ -149,6 +153,17 @@ export default function MapPage() {
         "Historical weather data could not be loaded, but other sections are available."
       );
     }
+
+    saveLastAnalysis({
+      location: {
+        lat: selectedPoint.lat,
+        lng: selectedPoint.lng,
+      },
+      historical: weatherSuccess ? weatherJson : null,
+      soil: soilSuccess ? soilJson : null,
+      risk: riskSuccess ? riskJson : null,
+      generatedAt: new Date().toISOString(),
+    });
 
     setIsAnalyzing(false);
   };
