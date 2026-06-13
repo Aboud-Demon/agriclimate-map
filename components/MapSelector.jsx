@@ -43,9 +43,13 @@ function MapClickHandler({ onSelect }) {
   return null;
 }
 
-export default function MapSelector() {
-  const [selectedPoint, setSelectedPoint] = useState(null);
-  const [status, setStatus] = useState("waiting");
+export default function MapSelector({
+  selectedPoint,
+  analysisStatus,
+  analysisMessage,
+  onPointSelect,
+  onAnalyzeLocation,
+}) {
   const [searchPlaceholder, setSearchPlaceholder] = useState("");
 
   const selectedLabel = useMemo(() => {
@@ -58,27 +62,18 @@ export default function MapSelector() {
 
   const handleUseCurrentLocation = () => {
     if (!navigator.geolocation) {
-      setStatus("geolocation-unavailable");
       return;
     }
 
-    setStatus("locating");
     navigator.geolocation.getCurrentPosition(
       ({ coords }) => {
-        setSelectedPoint({
+        onPointSelect({
           lat: Number(coords.latitude.toFixed(6)),
           lng: Number(coords.longitude.toFixed(6)),
         });
-        setStatus("ready");
       },
-      () => {
-        setStatus("geolocation-denied");
-      }
+      () => {}
     );
-  };
-
-  const handleAnalyze = () => {
-    setStatus(selectedPoint ? "pending-api" : "waiting");
   };
 
   return (
@@ -117,12 +112,7 @@ export default function MapSelector() {
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
-            <MapClickHandler
-              onSelect={(point) => {
-                setSelectedPoint(point);
-                setStatus("ready");
-              }}
-            />
+            <MapClickHandler onSelect={onPointSelect} />
             {selectedPoint && (
               <Marker
                 position={[selectedPoint.lat, selectedPoint.lng]}
@@ -178,7 +168,8 @@ export default function MapSelector() {
 
           <button
             type="button"
-            onClick={handleAnalyze}
+            onClick={onAnalyzeLocation}
+            disabled={analysisStatus === "loading"}
             className={`mt-5 inline-flex w-full items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-semibold ${
               selectedPoint
                 ? "bg-[var(--color-primary-strong)] text-white shadow-[0_18px_34px_-22px_rgba(27,94,32,0.78)]"
@@ -186,19 +177,13 @@ export default function MapSelector() {
             }`}
           >
             <Target className="h-4 w-4" />
-            Analyze Location
+            {analysisStatus === "loading"
+              ? "Analyzing Location..."
+              : "Analyze Location"}
           </button>
 
           <p className="mt-3 text-sm text-[var(--color-foreground-muted)]">
-            {status === "pending-api"
-              ? "Analysis is waiting for API integration."
-              : status === "locating"
-                ? "Trying to detect your current location."
-                : status === "geolocation-denied"
-                  ? "Location permission was denied. Select a location manually."
-                  : status === "geolocation-unavailable"
-                    ? "Current location is not available in this browser."
-                    : "Select a location to analyze"}
+            {analysisMessage}
           </p>
           <p className="mt-2 text-xs leading-6 text-[var(--color-foreground-soft)]">
             {selectedLabel}

@@ -28,20 +28,47 @@ function SectionTitle({ icon: Icon, title }) {
   );
 }
 
-export default function ResultPanel() {
+export default function ResultPanel({
+  selectedPoint,
+  analysisData,
+  analysisStatus,
+  analysisMessage,
+  onAnalyzeLocation,
+}) {
+  const coordinates = selectedPoint
+    ? `${selectedPoint.lat}, ${selectedPoint.lng}`
+    : "No data yet";
+
+  const statusLabel =
+    analysisStatus === "loading"
+      ? "Fetching historical weather data..."
+      : analysisStatus === "error"
+        ? analysisMessage
+        : analysisStatus === "success"
+          ? "Historical weather data loaded"
+          : "Select a location to analyze";
+
   return (
     <aside className="rounded-[1.75rem] border border-[var(--color-outline-soft)] bg-[rgba(255,255,255,0.92)] p-5 shadow-[0_22px_55px_-40px_rgba(27,94,32,0.5)]">
       <div className="h-full space-y-6 overflow-y-auto pr-1 xl:max-h-[calc(68vh+6.2rem)]">
         <div className="rounded-[1.5rem] border border-[var(--color-outline-soft)] bg-[linear-gradient(180deg,var(--color-surface-2),rgba(255,255,255,0.92))] p-4">
           <button
             type="button"
-            className="flex w-full cursor-not-allowed items-center justify-center gap-2 rounded-2xl bg-[var(--color-surface-4)] px-4 py-4 text-base font-semibold text-[var(--color-foreground-soft)]"
+            onClick={onAnalyzeLocation}
+            disabled={analysisStatus === "loading"}
+            className={`flex w-full items-center justify-center gap-2 rounded-2xl px-4 py-4 text-base font-semibold ${
+              analysisStatus === "loading" || !selectedPoint
+                ? "bg-[var(--color-surface-4)] text-[var(--color-foreground-soft)]"
+                : "bg-[var(--color-primary-strong)] text-white shadow-[0_18px_34px_-22px_rgba(27,94,32,0.78)]"
+            }`}
           >
             <ChartColumn className="h-5 w-5" />
-            Analyze Location
+            {analysisStatus === "loading"
+              ? "Fetching Historical Weather..."
+              : "Analyze Location"}
           </button>
           <p className="mt-3 text-sm text-[var(--color-foreground-muted)]">
-            Analysis is waiting for API integration.
+            {analysisMessage}
           </p>
         </div>
 
@@ -54,7 +81,9 @@ export default function ResultPanel() {
                   Selected Location
                 </span>
                 <span className="font-semibold text-[var(--color-foreground)]">
-                  Select a location to analyze
+                  {selectedPoint
+                    ? "Selected map coordinates"
+                    : "Select a location to analyze"}
                 </span>
               </div>
               <div className="flex items-center justify-between border-b border-[rgba(192,201,187,0.55)] pb-3">
@@ -62,7 +91,7 @@ export default function ResultPanel() {
                   Coordinates
                 </span>
                 <span className="font-semibold text-[var(--color-foreground)]">
-                  No data yet
+                  {coordinates}
                 </span>
               </div>
               <div className="flex items-center justify-between border-b border-[rgba(192,201,187,0.55)] pb-3">
@@ -70,7 +99,9 @@ export default function ResultPanel() {
                   Analysis Window
                 </span>
                 <span className="font-semibold text-[var(--color-foreground)]">
-                  Historical Weather — Last 5 Years
+                  {analysisData
+                    ? `${analysisData.period.start} to ${analysisData.period.end}`
+                    : "Historical Weather - Last 5 Years"}
                 </span>
               </div>
               <div className="flex items-center justify-between">
@@ -78,7 +109,7 @@ export default function ResultPanel() {
                   Status
                 </span>
                 <span className="font-semibold italic text-[var(--color-foreground-muted)]">
-                  Select a location to analyze
+                  {statusLabel}
                 </span>
               </div>
             </div>
@@ -88,9 +119,12 @@ export default function ResultPanel() {
         <section>
           <SectionTitle
             icon={ThermometerSun}
-            title="Historical Weather — Last 5 Years"
+            title="Historical Weather - Last 5 Years"
           />
-          <WeatherCards />
+          <WeatherCards
+            summary={analysisData?.summary}
+            isLoading={analysisStatus === "loading"}
+          />
         </section>
 
         <section>
@@ -140,7 +174,10 @@ export default function ResultPanel() {
 
         <section>
           <SectionTitle icon={Sprout} title="Charts" />
-          <ChartsPanel />
+          <ChartsPanel
+            yearly={analysisData?.yearly ?? []}
+            isLoading={analysisStatus === "loading"}
+          />
         </section>
 
         <div className="rounded-[1.4rem] border border-[var(--color-outline-soft)] bg-[var(--color-surface-3)] p-4 text-sm leading-7 text-[var(--color-foreground-muted)]">
