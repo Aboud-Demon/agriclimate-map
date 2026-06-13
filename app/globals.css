@@ -48,6 +48,13 @@ input {
   transition-duration: 180ms;
 }
 
+button:focus-visible,
+input:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--color-secondary);
+  outline-offset: 2px;
+}
+
 .leaflet-container {
   height: 100%;
   width: 100%;
@@ -136,5 +143,11 @@ input {
 
   .report-preview svg {
     color: currentColor !important;
+  }
+}
+
+@media (max-width: 1023px) {
+  .report-sidebar {
+    position: static;
   }
 }

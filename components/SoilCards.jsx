@@ -1,54 +1,56 @@
+import { useLanguage } from "@/components/LanguageProvider";
+
 const cards = [
   {
-    label: "Soil Type / Texture",
+    labelKey: "soil.soilType",
     key: "textureClass",
     unit: "",
   },
   {
-    label: "pH",
+    labelKey: "soil.ph",
     key: "ph",
     unit: "",
   },
   {
-    label: "Sand",
+    labelKey: "soil.sand",
     key: "sand",
     unit: "%",
   },
   {
-    label: "Clay",
+    labelKey: "soil.clay",
     key: "clay",
     unit: "%",
   },
   {
-    label: "Silt",
+    labelKey: "soil.silt",
     key: "silt",
     unit: "%",
   },
   {
-    label: "Organic Carbon",
+    labelKey: "soil.organicCarbon",
     key: "organicCarbon",
     unit: "g/kg",
   },
   {
-    label: "Nitrogen",
+    labelKey: "soil.nitrogen",
     key: "nitrogen",
     unit: "g/kg",
   },
   {
-    label: "Bulk Density",
+    labelKey: "soil.bulkDensity",
     key: "bulkDensity",
-    unit: "kg/dm³",
+    unit: "kg/dm\u00B3",
   },
   {
-    label: "CEC",
+    labelKey: "soil.cec",
     key: "cec",
     unit: "cmol/kg",
   },
 ];
 
-function formatValue(value, unit) {
+function formatValue(value, unit, fallback) {
   if (value === null || value === undefined || value === "") {
-    return "No data yet";
+    return fallback;
   }
 
   if (typeof value === "string") {
@@ -59,6 +61,8 @@ function formatValue(value, unit) {
 }
 
 export default function SoilCards({ summary, isLoading, message }) {
+  const { t } = useLanguage();
+
   const hasAnySummaryValue = cards.some((card) => {
     const value = summary?.[card.key];
     return value !== null && value !== undefined && value !== "";
@@ -66,29 +70,33 @@ export default function SoilCards({ summary, isLoading, message }) {
 
   return (
     <div>
-      <div className="grid gap-3 sm:grid-cols-3">
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
         {cards.map((card) => (
           <div
             key={card.key}
-            className="rounded-[1.2rem] border border-[var(--color-outline-soft)] bg-[var(--color-surface-2)] p-4 text-center"
+            className="min-w-0 rounded-[1.2rem] border border-[var(--color-outline-soft)] bg-[var(--color-surface-2)] p-4 text-center"
           >
             <p className="text-xs uppercase tracking-[0.18em] text-[var(--color-foreground-soft)]">
-              {card.label}
+              {t(card.labelKey)}
             </p>
-            <p className="mt-3 text-lg font-semibold tracking-[-0.02em] text-[var(--color-foreground)]">
+            <p className="mt-3 text-base font-semibold tracking-[-0.02em] text-[var(--color-foreground)] sm:text-lg">
               {isLoading
-                ? "Fetching soil data..."
-                : formatValue(summary?.[card.key], card.unit)}
+                ? t("soil.loading")
+                : formatValue(
+                    summary?.[card.key],
+                    card.unit,
+                    t("common.noDataYet")
+                  )}
             </p>
           </div>
         ))}
       </div>
       <p className="mt-3 text-sm text-[var(--color-foreground-muted)]">
         {isLoading
-          ? "Fetching soil data..."
+          ? t("soil.loading")
           : hasAnySummaryValue
             ? message
-            : message || "No soil data available for this location."}
+            : message || t("soil.unavailable")}
       </p>
     </div>
   );

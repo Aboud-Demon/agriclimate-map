@@ -1,17 +1,50 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
 import { Bell, CircleUserRound } from "lucide-react";
 import { usePathname } from "next/navigation";
-
-const links = [
-  { href: "/", label: "Home" },
-  { href: "/map", label: "Map Analysis" },
-  { href: "/report", label: "Report" },
-];
+import { useLanguage } from "@/components/LanguageProvider";
 
 export default function Navbar() {
   const pathname = usePathname();
+  const [openMenu, setOpenMenu] = useState(null);
+  const menuContainerRef = useRef(null);
+  const { language, setLanguage, t } = useLanguage();
+
+  const links = [
+    { href: "/", label: t("nav.home") },
+    { href: "/map", label: t("nav.map") },
+    { href: "/report", label: t("nav.report") },
+  ];
+
+  useEffect(() => {
+    function handlePointerDown(event) {
+      if (!menuContainerRef.current?.contains(event.target)) {
+        setOpenMenu(null);
+      }
+    }
+
+    function handleKeyDown(event) {
+      if (event.key === "Escape") {
+        setOpenMenu(null);
+      }
+    }
+
+    document.addEventListener("mousedown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
+
+  const toggleMenu = (menuName) => {
+    setOpenMenu((currentMenu) =>
+      currentMenu === menuName ? null : menuName
+    );
+  };
 
   return (
     <header className="sticky top-0 z-40 border-b border-[var(--color-outline-soft)] bg-[rgba(251,251,226,0.88)] backdrop-blur-xl">
@@ -21,7 +54,7 @@ export default function Navbar() {
             href="/"
             className="text-2xl font-semibold tracking-[-0.03em] text-[var(--color-primary)]"
           >
-            AgriClimate Map
+            {t("common.appName")}
           </Link>
           <nav className="hidden items-center gap-6 md:flex">
             {links.map((link) => {
@@ -46,21 +79,93 @@ export default function Navbar() {
           </nav>
         </div>
 
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-[var(--color-outline-soft)] bg-white/70 text-[var(--color-primary)]"
-            aria-label="Notifications placeholder"
-          >
-            <Bell className="h-5 w-5" />
-          </button>
-          <button
-            type="button"
-            className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-[var(--color-outline-soft)] bg-white/70 text-[var(--color-primary)]"
-            aria-label="User profile placeholder"
-          >
-            <CircleUserRound className="h-5 w-5" />
-          </button>
+        <div
+          ref={menuContainerRef}
+          className="relative flex items-center gap-2"
+        >
+          <div className="flex items-center gap-1 rounded-2xl border border-[var(--color-outline-soft)] bg-white/70 p-1">
+            <button
+              type="button"
+              onClick={() => setLanguage("en")}
+              aria-label={t("common.english")}
+              className={`rounded-xl px-3 py-2 text-sm font-medium ${
+                language === "en"
+                  ? "bg-[var(--color-primary-strong)] text-white"
+                  : "text-[var(--color-foreground-muted)] hover:bg-white"
+              }`}
+            >
+              {t("common.english")}
+            </button>
+            <button
+              type="button"
+              onClick={() => setLanguage("ar")}
+              aria-label={t("common.arabic")}
+              className={`rounded-xl px-3 py-2 text-sm font-medium ${
+                language === "ar"
+                  ? "bg-[var(--color-primary-strong)] text-white"
+                  : "text-[var(--color-foreground-muted)] hover:bg-white"
+              }`}
+            >
+              {t("common.arabic")}
+            </button>
+          </div>
+
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => toggleMenu("notifications")}
+              className={`inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-[var(--color-outline-soft)] bg-white/70 text-[var(--color-primary)] ${
+                openMenu === "notifications"
+                  ? "shadow-[0_16px_28px_-22px_rgba(27,94,32,0.7)]"
+                  : "hover:bg-white"
+              }`}
+              aria-label={t("nav.openNotifications")}
+              aria-expanded={openMenu === "notifications"}
+              aria-haspopup="dialog"
+            >
+              <Bell className="h-5 w-5" />
+            </button>
+            {openMenu === "notifications" ? (
+              <div className="absolute right-0 top-14 z-50 w-72 rounded-[1.25rem] border border-[var(--color-outline-soft)] bg-white p-4 text-sm shadow-[0_22px_48px_-32px_rgba(27,94,32,0.45)]">
+                <p className="font-semibold text-[var(--color-primary)]">
+                  {t("nav.notifications")}
+                </p>
+                <p className="mt-2 leading-6 text-[var(--color-foreground-muted)]">
+                  {t("nav.notificationsNote")}
+                </p>
+              </div>
+            ) : null}
+          </div>
+
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => toggleMenu("profile")}
+              className={`inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-[var(--color-outline-soft)] bg-white/70 text-[var(--color-primary)] ${
+                openMenu === "profile"
+                  ? "shadow-[0_16px_28px_-22px_rgba(27,94,32,0.7)]"
+                  : "hover:bg-white"
+              }`}
+              aria-label={t("nav.openProfile")}
+              aria-expanded={openMenu === "profile"}
+              aria-haspopup="dialog"
+            >
+              <CircleUserRound className="h-5 w-5" />
+            </button>
+            {openMenu === "profile" ? (
+              <div className="absolute right-0 top-14 z-50 w-72 rounded-[1.25rem] border border-[var(--color-outline-soft)] bg-white p-4 text-sm shadow-[0_22px_48px_-32px_rgba(27,94,32,0.45)]">
+                <p className="font-semibold text-[var(--color-primary)]">
+                  {t("common.appName")}
+                </p>
+                <p className="mt-2 font-medium text-[var(--color-foreground)]">
+                  {t("nav.demoWorkspace")}
+                </p>
+                <p className="mt-2 leading-6 text-[var(--color-foreground-muted)]">
+                  {t("nav.noAccount")}
+                </p>
+              </div>
+            ) : null}
+          </div>
         </div>
       </div>
     </header>

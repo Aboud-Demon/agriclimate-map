@@ -4,36 +4,44 @@ import dynamic from "next/dynamic";
 import { LoaderCircle } from "lucide-react";
 import { useState } from "react";
 
+import { useLanguage } from "@/components/LanguageProvider";
 import { saveLastAnalysis } from "@/lib/lastAnalysisStorage";
 import Navbar from "@/components/Navbar";
 import ResultPanel from "@/components/ResultPanel";
 
-const MapSelector = dynamic(() => import("@/components/MapSelector"), {
-  ssr: false,
-  loading: () => (
-    <div className="flex h-[68vh] min-h-[520px] items-center justify-center rounded-[1.75rem] border border-[var(--color-outline-soft)] bg-[var(--color-surface-1)]">
+function MapLoading() {
+  const { t } = useLanguage();
+
+  return (
+    <div className="flex h-[60vh] min-h-[360px] items-center justify-center rounded-[1.75rem] border border-[var(--color-outline-soft)] bg-[var(--color-surface-1)] sm:h-[64vh] sm:min-h-[440px] xl:h-[68vh] xl:min-h-[520px]">
       <div className="flex items-center gap-3 text-sm font-medium text-[var(--color-foreground-muted)]">
         <LoaderCircle className="h-5 w-5 animate-spin" />
-        Loading interactive map
+        {t("map.loadingInteractiveMap")}
       </div>
     </div>
-  ),
+  );
+}
+
+const MapSelector = dynamic(() => import("@/components/MapSelector"), {
+  ssr: false,
+  loading: () => <MapLoading />,
 });
 
 export default function MapPage() {
+  const { t } = useLanguage();
   const [selectedPoint, setSelectedPoint] = useState(null);
   const [weatherData, setWeatherData] = useState(null);
   const [soilData, setSoilData] = useState(null);
   const [riskData, setRiskData] = useState(null);
   const [analysisStatus, setAnalysisStatus] = useState("idle");
-  const [analysisMessage, setAnalysisMessage] = useState(
-    "Select a location to analyze"
+  const [analysisMessageKey, setAnalysisMessageKey] = useState(
+    "map.selectLocation"
   );
   const [soilStatus, setSoilStatus] = useState("idle");
-  const [soilMessage, setSoilMessage] = useState("No data yet");
+  const [soilMessageKey, setSoilMessageKey] = useState("common.noDataYet");
   const [riskStatus, setRiskStatus] = useState("idle");
-  const [riskMessage, setRiskMessage] = useState(
-    "Alerts will appear after analyzing real API data."
+  const [riskMessageKey, setRiskMessageKey] = useState(
+    "map.riskPlaceholder"
   );
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
@@ -45,17 +53,15 @@ export default function MapPage() {
     setAnalysisStatus("idle");
     setSoilStatus("idle");
     setRiskStatus("idle");
-    setAnalysisMessage(
-      "Location selected. Ready to fetch historical weather, soil, and risk data."
-    );
-    setSoilMessage("No data yet");
-    setRiskMessage("Alerts will appear after analyzing real API data.");
+    setAnalysisMessageKey("map.locationReady");
+    setSoilMessageKey("common.noDataYet");
+    setRiskMessageKey("map.riskPlaceholder");
   };
 
   const handleAnalyzeLocation = async () => {
     if (!selectedPoint) {
       setAnalysisStatus("error");
-      setAnalysisMessage("Please select a location on the map first.");
+      setAnalysisMessageKey("map.noLocationError");
       return;
     }
 
@@ -63,9 +69,9 @@ export default function MapPage() {
     setAnalysisStatus("loading");
     setSoilStatus("loading");
     setRiskStatus("loading");
-    setAnalysisMessage("Fetching historical weather data...");
-    setSoilMessage("Fetching soil data...");
-    setRiskMessage("Loading seasonal agricultural risk indicators...");
+    setAnalysisMessageKey("map.fetchingHistorical");
+    setSoilMessageKey("map.fetchingSoil");
+    setRiskMessageKey("map.fetchingRisk");
 
     const [weatherResult, soilResult, riskResult] = await Promise.allSettled([
       fetch(`/api/historical?lat=${selectedPoint.lat}&lng=${selectedPoint.lng}`),
@@ -86,19 +92,17 @@ export default function MapPage() {
       if (weatherResult.value.ok) {
         setWeatherData(weatherJson);
         setAnalysisStatus("success");
-        setAnalysisMessage("Historical weather data loaded successfully.");
+        setAnalysisMessageKey("map.historicalLoaded");
         weatherSuccess = true;
       } else {
         setWeatherData(null);
         setAnalysisStatus("error");
-        setAnalysisMessage(
-          weatherJson.error || "We could not fetch historical weather data."
-        );
+        setAnalysisMessageKey("map.historicalError");
       }
     } else {
       setWeatherData(null);
       setAnalysisStatus("error");
-      setAnalysisMessage("We could not fetch historical weather data.");
+      setAnalysisMessageKey("map.historicalError");
     }
 
     if (soilResult.status === "fulfilled") {
@@ -107,19 +111,17 @@ export default function MapPage() {
       if (soilResult.value.ok) {
         setSoilData(soilJson);
         setSoilStatus("success");
-        setSoilMessage("Soil data loaded successfully.");
+        setSoilMessageKey("map.soilLoaded");
         soilSuccess = true;
       } else {
         setSoilData(null);
         setSoilStatus("error");
-        setSoilMessage(
-          soilJson.error || "No soil data available for this location."
-        );
+        setSoilMessageKey("map.soilUnavailable");
       }
     } else {
       setSoilData(null);
       setSoilStatus("error");
-      setSoilMessage("We could not fetch soil data for this location.");
+      setSoilMessageKey("map.soilError");
     }
 
     if (riskResult.status === "fulfilled") {
@@ -128,30 +130,25 @@ export default function MapPage() {
       if (riskResult.value.ok) {
         setRiskData(riskJson);
         setRiskStatus("success");
-        setRiskMessage(
+        setRiskMessageKey(
           riskJson.alerts?.length
-            ? riskJson.summary.notice
-            : "No major seasonal agricultural risks detected for the upcoming months."
+            ? "common.disclaimerText"
+            : "map.noMajorRisks"
         );
         riskSuccess = true;
       } else {
         setRiskData(null);
         setRiskStatus("error");
-        setRiskMessage(
-          riskJson.error ||
-            "We could not fetch seasonal agricultural risk guidance."
-        );
+        setRiskMessageKey("map.riskError");
       }
     } else {
       setRiskData(null);
       setRiskStatus("error");
-      setRiskMessage("We could not fetch seasonal agricultural risk guidance.");
+      setRiskMessageKey("map.riskError");
     }
 
     if (!weatherSuccess && (soilSuccess || riskSuccess)) {
-      setAnalysisMessage(
-        "Historical weather data could not be loaded, but other sections are available."
-      );
+      setAnalysisMessageKey("map.historicalPartial");
     }
 
     saveLastAnalysis({
@@ -173,12 +170,12 @@ export default function MapPage() {
       <Navbar />
       <main className="mx-auto flex max-w-[1600px] flex-col gap-6 px-4 py-6 lg:px-6">
         <div className="rounded-[2rem] border border-[var(--color-outline-soft)] bg-[linear-gradient(180deg,rgba(255,255,255,0.7),rgba(245,245,220,0.72))] p-3 shadow-[0_25px_55px_-42px_rgba(27,94,32,0.5)] lg:p-4">
-          <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_440px]">
+          <div className="grid gap-4 lg:gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(360px,440px)]">
             <MapSelector
               selectedPoint={selectedPoint}
               analysisStatus={analysisStatus}
               isAnalyzing={isAnalyzing}
-              analysisMessage={analysisMessage}
+              analysisMessage={t(analysisMessageKey)}
               onPointSelect={handlePointSelect}
               onAnalyzeLocation={handleAnalyzeLocation}
             />
@@ -188,11 +185,11 @@ export default function MapPage() {
               soilData={soilData}
               riskData={riskData}
               analysisStatus={analysisStatus}
-              analysisMessage={analysisMessage}
+              analysisMessage={t(analysisMessageKey)}
               soilStatus={soilStatus}
-              soilMessage={soilMessage}
+              soilMessage={t(soilMessageKey)}
               riskStatus={riskStatus}
-              riskMessage={riskMessage}
+              riskMessage={t(riskMessageKey)}
               isAnalyzing={isAnalyzing}
               onAnalyzeLocation={handleAnalyzeLocation}
             />

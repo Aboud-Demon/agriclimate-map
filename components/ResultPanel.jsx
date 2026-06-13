@@ -11,6 +11,7 @@ import {
 
 import AlertPanel from "@/components/AlertPanel";
 import ChartsPanel from "@/components/ChartsPanel";
+import { useLanguage } from "@/components/LanguageProvider";
 import RecommendationCard from "@/components/RecommendationCard";
 import SoilCards from "@/components/SoilCards";
 import WeatherCards from "@/components/WeatherCards";
@@ -42,35 +43,37 @@ export default function ResultPanel({
   isAnalyzing,
   onAnalyzeLocation,
 }) {
+  const { t } = useLanguage();
   const coordinates = selectedPoint
     ? `${selectedPoint.lat}, ${selectedPoint.lng}`
-    : "No data yet";
+    : t("common.noDataYet");
 
   const statusLabel =
     isAnalyzing
-      ? "Fetching analysis data..."
+      ? t("map.fetchingAnalysisData")
       : analysisStatus === "error"
         ? analysisMessage
         : analysisStatus === "success"
-          ? "Historical weather data loaded"
-          : "Select a location to analyze";
+          ? t("map.weatherLoadedStatus")
+          : t("map.selectLocation");
 
   return (
-    <aside className="rounded-[1.75rem] border border-[var(--color-outline-soft)] bg-[rgba(255,255,255,0.92)] p-5 shadow-[0_22px_55px_-40px_rgba(27,94,32,0.5)]">
-      <div className="h-full space-y-6 overflow-y-auto pr-1 xl:max-h-[calc(68vh+6.2rem)]">
+    <aside className="rounded-[1.75rem] border border-[var(--color-outline-soft)] bg-[rgba(255,255,255,0.92)] p-4 shadow-[0_22px_55px_-40px_rgba(27,94,32,0.5)] sm:p-5">
+      <div className="space-y-5 lg:max-h-[60vh] lg:overflow-y-auto lg:pr-2 xl:max-h-[calc(68vh+5rem)]">
         <div className="rounded-[1.5rem] border border-[var(--color-outline-soft)] bg-[linear-gradient(180deg,var(--color-surface-2),rgba(255,255,255,0.92))] p-4">
           <button
             type="button"
             onClick={onAnalyzeLocation}
             disabled={isAnalyzing}
-            className={`flex w-full items-center justify-center gap-2 rounded-2xl px-4 py-4 text-base font-semibold ${
+            aria-label={t("map.runAnalysis")}
+            className={`flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-semibold sm:text-base ${
               isAnalyzing || !selectedPoint
                 ? "bg-[var(--color-surface-4)] text-[var(--color-foreground-soft)]"
-                : "bg-[var(--color-primary-strong)] text-white shadow-[0_18px_34px_-22px_rgba(27,94,32,0.78)]"
+                : "bg-[var(--color-primary-strong)] text-white shadow-[0_18px_34px_-22px_rgba(27,94,32,0.78)] hover:translate-y-[-1px]"
             }`}
           >
             <ChartColumn className="h-5 w-5" />
-            {isAnalyzing ? "Fetching Analysis..." : "Analyze Location"}
+            {isAnalyzing ? t("map.fetchingAnalysis") : t("map.runAnalysis")}
           </button>
           <p className="mt-3 text-sm text-[var(--color-foreground-muted)]">
             {analysisMessage}
@@ -78,42 +81,42 @@ export default function ResultPanel({
         </div>
 
         <section>
-          <SectionTitle icon={MapPinned} title="Location Summary" />
+          <SectionTitle icon={MapPinned} title={t("map.locationSummary")} />
           <div className="rounded-[1.5rem] border border-[var(--color-outline-soft)] bg-[linear-gradient(180deg,var(--color-surface-2),rgba(255,255,255,0.92))] p-5">
             <div className="space-y-4 text-sm">
-              <div className="flex items-center justify-between border-b border-[rgba(192,201,187,0.55)] pb-3">
+              <div className="flex flex-col gap-2 border-b border-[rgba(192,201,187,0.55)] pb-3 sm:flex-row sm:items-center sm:justify-between">
                 <span className="text-[var(--color-foreground-muted)]">
-                  Selected Location
+                  {t("map.selectedLocation")}
                 </span>
                 <span className="font-semibold text-[var(--color-foreground)]">
                   {selectedPoint
-                    ? "Selected map coordinates"
-                    : "Select a location to analyze"}
+                    ? t("map.selectedMapCoordinates")
+                    : t("map.selectLocation")}
                 </span>
               </div>
-              <div className="flex items-center justify-between border-b border-[rgba(192,201,187,0.55)] pb-3">
+              <div className="flex flex-col gap-2 border-b border-[rgba(192,201,187,0.55)] pb-3 sm:flex-row sm:items-center sm:justify-between">
                 <span className="text-[var(--color-foreground-muted)]">
-                  Coordinates
+                  {t("map.selectedCoordinates")}
                 </span>
-                <span className="font-semibold text-[var(--color-foreground)]">
+                <span dir="ltr" className="break-all font-semibold text-[var(--color-foreground)] sm:text-right">
                   {coordinates}
                 </span>
               </div>
-              <div className="flex items-center justify-between border-b border-[rgba(192,201,187,0.55)] pb-3">
+              <div className="flex flex-col gap-2 border-b border-[rgba(192,201,187,0.55)] pb-3 sm:flex-row sm:items-center sm:justify-between">
                 <span className="text-[var(--color-foreground-muted)]">
-                  Analysis Window
+                  {t("map.analysisWindow")}
                 </span>
-                <span className="font-semibold text-[var(--color-foreground)]">
+                <span className="font-semibold text-[var(--color-foreground)] sm:text-right">
                   {weatherData
-                    ? `${weatherData.period.start} to ${weatherData.period.end}`
-                    : "Historical Weather - Last 5 Years"}
+                    ? `${weatherData.period.start} - ${weatherData.period.end}`
+                    : t("map.historicalWindowFallback")}
                 </span>
               </div>
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <span className="text-[var(--color-foreground-muted)]">
-                  Status
+                  {t("map.status")}
                 </span>
-                <span className="font-semibold italic text-[var(--color-foreground-muted)]">
+                <span className="font-semibold italic text-[var(--color-foreground-muted)] sm:text-right">
                   {statusLabel}
                 </span>
               </div>
@@ -124,7 +127,7 @@ export default function ResultPanel({
         <section>
           <SectionTitle
             icon={ThermometerSun}
-            title="Historical Weather - Last 5 Years"
+            title={t("map.historicalWeatherTitle")}
           />
           <WeatherCards
             summary={weatherData?.summary}
@@ -133,7 +136,7 @@ export default function ResultPanel({
         </section>
 
         <section>
-          <SectionTitle icon={Leaf} title="Soil Analysis" />
+          <SectionTitle icon={Leaf} title={t("map.soilAnalysisTitle")} />
           <SoilCards
             summary={soilData?.summary}
             isLoading={isAnalyzing && soilStatus === "loading"}
@@ -142,13 +145,13 @@ export default function ResultPanel({
         </section>
 
         <section>
-          <SectionTitle icon={SunMedium} title="UV and Solar Radiation" />
+          <SectionTitle icon={SunMedium} title={t("map.uvTitle")} />
           <div className="grid gap-3 sm:grid-cols-2">
             {[
-              "UV Exposure",
-              "Solar Radiation",
-              "Daylight Hours",
-              "Agricultural Solar Context",
+              t("map.uvExposure"),
+              t("map.solarRadiation"),
+              t("map.daylightHours"),
+              t("map.agriculturalSolarContext"),
             ].map((label) => (
               <div
                 key={label}
@@ -158,7 +161,7 @@ export default function ResultPanel({
                   {label}
                 </p>
                 <p className="mt-3 text-lg font-semibold tracking-[-0.02em] text-[var(--color-foreground)]">
-                  No data yet
+                  {t("common.noDataYet")}
                 </p>
               </div>
             ))}
@@ -168,7 +171,7 @@ export default function ResultPanel({
         <section>
           <SectionTitle
             icon={AlertTriangle}
-            title="Seasonal Agricultural Alerts"
+            title={t("map.alertsTitle")}
           />
           <AlertPanel
             alerts={riskData?.alerts ?? []}
@@ -180,13 +183,13 @@ export default function ResultPanel({
         <section>
           <SectionTitle
             icon={Droplets}
-            title="Smart Irrigation Recommendation"
+            title={t("map.irrigationTitle")}
           />
           <RecommendationCard />
         </section>
 
         <section>
-          <SectionTitle icon={Sprout} title="Charts" />
+          <SectionTitle icon={Sprout} title={t("map.chartsTitle")} />
           <ChartsPanel
             yearly={weatherData?.yearly ?? []}
             isLoading={isAnalyzing}
@@ -195,11 +198,9 @@ export default function ResultPanel({
 
         <div className="rounded-[1.4rem] border border-[var(--color-outline-soft)] bg-[var(--color-surface-3)] p-4 text-sm leading-7 text-[var(--color-foreground-muted)]">
           <span className="mb-1 block text-xs font-semibold uppercase tracking-[0.2em] text-[var(--color-primary)]">
-            Disclaimer
+            {t("common.disclaimerTitle")}
           </span>
-          Seasonal forecasts are agricultural risk indicators based on
-          historical data and forecast models. They are not exact daily weather
-          predictions.
+          {t("common.disclaimerText")}
         </div>
       </div>
     </aside>

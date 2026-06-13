@@ -10,19 +10,21 @@ import {
 } from "recharts";
 import { useEffect, useRef, useState } from "react";
 
+import { useLanguage } from "@/components/LanguageProvider";
+
 const chartConfig = [
   {
-    title: "Temperature Trend Over Last 5 Years",
+    titleKey: "weather.averageTemperature",
     dataKey: "avgTemperature",
     color: "#1b5e20",
   },
   {
-    title: "Rainfall Trend Over Last 5 Years",
+    titleKey: "weather.totalRainfall",
     dataKey: "totalRainfall",
     color: "#00639a",
   },
   {
-    title: "Soil Moisture Trend",
+    titleKey: "weather.soilMoisture",
     dataKey: "avgSoilMoisture",
     color: "#50342c",
   },
@@ -82,6 +84,8 @@ function TrendChart({ data, dataKey, color }) {
 }
 
 export default function ChartsPanel({ yearly, isLoading }) {
+  const { t } = useLanguage();
+
   return (
     <div className="grid gap-3">
       {chartConfig.map((chart) => {
@@ -90,15 +94,15 @@ export default function ChartsPanel({ yearly, isLoading }) {
         return (
           <div
             key={chart.dataKey}
-            className="rounded-[1.5rem] border border-[var(--color-outline-soft)] bg-[var(--color-surface-1)] p-5"
+            className="min-w-0 rounded-[1.5rem] border border-[var(--color-outline-soft)] bg-[var(--color-surface-1)] p-4 sm:p-5"
           >
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-foreground-soft)]">
-              {chart.title}
+              {t(chart.titleKey)}
             </p>
-            <div className="mt-4 h-44 rounded-[1rem] bg-[var(--color-surface-2)] px-2 py-3">
+            <div className="mt-4 h-40 rounded-[1rem] bg-[var(--color-surface-2)] px-2 py-3 sm:h-44">
               {isLoading ? (
                 <div className="flex h-full items-center justify-center px-5 text-center text-sm text-[var(--color-foreground-muted)]">
-                  Fetching historical weather data...
+                  {t("weather.loading")}
                 </div>
               ) : hasData ? (
                 <TrendChart
@@ -108,7 +112,7 @@ export default function ChartsPanel({ yearly, isLoading }) {
                 />
               ) : (
                 <div className="flex h-full items-center justify-center px-5 text-center text-sm text-[var(--color-foreground-muted)]">
-                  Chart will appear after selecting a location.
+                  {t("map.chartPlaceholder")}
                 </div>
               )}
             </div>

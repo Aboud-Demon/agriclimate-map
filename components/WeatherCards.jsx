@@ -1,69 +1,77 @@
+import { useLanguage } from "@/components/LanguageProvider";
+
 const cards = [
   {
-    label: "Average Temperature",
+    labelKey: "weather.averageTemperature",
     key: "avgTemperature",
-    unit: "°C",
+    unit: "\u00B0C",
   },
   {
-    label: "Maximum Temperature",
+    labelKey: "weather.maximumTemperature",
     key: "maxTemperature",
-    unit: "°C",
+    unit: "\u00B0C",
   },
   {
-    label: "Minimum Temperature",
+    labelKey: "weather.minimumTemperature",
     key: "minTemperature",
-    unit: "°C",
+    unit: "\u00B0C",
   },
   {
-    label: "Total Rainfall",
+    labelKey: "weather.totalRainfall",
     key: "totalRainfall",
     unit: "mm",
   },
   {
-    label: "Wind Speed",
+    labelKey: "weather.windSpeed",
     key: "avgWindSpeed",
     unit: "km/h",
   },
   {
-    label: "Solar Radiation",
+    labelKey: "weather.solarRadiation",
     key: "avgSolarRadiation",
-    unit: "MJ/m²",
+    unit: "MJ/m\u00B2",
   },
   {
-    label: "Soil Temperature",
+    labelKey: "weather.soilTemperature",
     key: "avgSoilTemperature",
-    unit: "°C",
+    unit: "\u00B0C",
   },
   {
-    label: "Soil Moisture",
+    labelKey: "weather.soilMoisture",
     key: "avgSoilMoisture",
-    unit: "m³/m³",
+    unit: "m\u00B3/m\u00B3",
   },
 ];
 
-function formatValue(value, unit) {
+function formatValue(value, unit, fallback) {
   if (value === null || value === undefined) {
-    return "No data yet";
+    return fallback;
   }
 
   return `${value} ${unit}`;
 }
 
 export default function WeatherCards({ summary, isLoading }) {
+  const { t } = useLanguage();
+
   return (
-    <div className="grid gap-3 sm:grid-cols-2">
+    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-2">
       {cards.map((card) => (
         <div
           key={card.key}
-          className="rounded-[1.3rem] border border-[var(--color-outline-soft)] bg-white p-4"
+          className="min-w-0 rounded-[1.3rem] border border-[var(--color-outline-soft)] bg-white p-4"
         >
           <p className="text-xs uppercase tracking-[0.18em] text-[var(--color-foreground-soft)]">
-            {card.label}
+            {t(card.labelKey)}
           </p>
-          <p className="mt-3 text-lg font-semibold tracking-[-0.02em] text-[var(--color-foreground)]">
+          <p className="mt-3 text-base font-semibold tracking-[-0.02em] text-[var(--color-foreground)] sm:text-lg">
             {isLoading
-              ? "Fetching historical weather data..."
-              : formatValue(summary?.[card.key], card.unit)}
+              ? t("weather.loading")
+              : formatValue(
+                  summary?.[card.key],
+                  card.unit,
+                  t("common.noDataYet")
+                )}
           </p>
         </div>
       ))}

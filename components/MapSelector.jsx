@@ -13,6 +13,8 @@ import {
   useMapEvents,
 } from "react-leaflet";
 
+import { useLanguage } from "@/components/LanguageProvider";
+
 const defaultCenter = [33.3152, 44.3661];
 
 const markerIcon = divIcon({
@@ -51,15 +53,16 @@ export default function MapSelector({
   onPointSelect,
   onAnalyzeLocation,
 }) {
+  const { dir, t } = useLanguage();
   const [searchPlaceholder, setSearchPlaceholder] = useState("");
 
   const selectedLabel = useMemo(() => {
     if (!selectedPoint) {
-      return "Select a location to analyze";
+      return t("map.selectLocation");
     }
 
     return `${selectedPoint.lat}, ${selectedPoint.lng}`;
-  }, [selectedPoint]);
+  }, [selectedPoint, t]);
 
   const handleUseCurrentLocation = () => {
     if (!navigator.geolocation) {
@@ -79,30 +82,38 @@ export default function MapSelector({
 
   return (
     <section className="rounded-[1.75rem] border border-[var(--color-outline-soft)] bg-[rgba(255,255,255,0.75)] p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]">
-      <div className="mb-3 flex flex-col gap-3 rounded-[1.5rem] border border-[var(--color-outline-soft)] bg-white p-3 shadow-sm lg:flex-row lg:items-center">
+      <div className="mb-3 flex flex-col gap-3 rounded-[1.5rem] border border-[var(--color-outline-soft)] bg-white p-3 shadow-sm md:flex-row md:items-center">
         <label className="relative block flex-1">
-          <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[var(--color-foreground-soft)]" />
+          <Search
+            className={`pointer-events-none absolute top-1/2 h-5 w-5 -translate-y-1/2 text-[var(--color-foreground-soft)] ${
+              dir === "rtl" ? "right-4" : "left-4"
+            }`}
+          />
           <input
             type="text"
             value={searchPlaceholder}
             onChange={(event) => setSearchPlaceholder(event.target.value)}
-            placeholder="Search location or select on map"
-            className="h-14 w-full rounded-full border border-[var(--color-outline-soft)] bg-[var(--color-surface-2)] pl-12 pr-4 text-base text-[var(--color-foreground)] outline-none placeholder:text-[var(--color-foreground-soft)] focus:border-[var(--color-primary)]"
+            placeholder={t("map.searchPlaceholder")}
+            aria-label={t("map.searchPlaceholder")}
+            className={`h-12 w-full rounded-full border border-[var(--color-outline-soft)] bg-[var(--color-surface-2)] text-sm text-[var(--color-foreground)] outline-none placeholder:text-[var(--color-foreground-soft)] focus:border-[var(--color-primary)] sm:h-14 sm:text-base ${
+              dir === "rtl" ? "pr-12 pl-4" : "pl-12 pr-4"
+            }`}
           />
         </label>
         <button
           type="button"
           onClick={handleUseCurrentLocation}
-          className="inline-flex h-14 items-center justify-center gap-2 rounded-full bg-[var(--color-secondary)] px-5 text-sm font-semibold text-white shadow-[0_16px_30px_-18px_rgba(0,99,154,0.85)]"
+          aria-label={t("map.useCurrentLocation")}
+          className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[var(--color-secondary)] px-5 py-3 text-sm font-semibold text-white shadow-[0_16px_30px_-18px_rgba(0,99,154,0.85)]"
         >
           <LocateFixed className="h-4 w-4" />
-          Use Current Location
+          {t("map.useCurrentLocation")}
         </button>
       </div>
 
       <div className="relative overflow-hidden rounded-[1.5rem] border border-[var(--color-outline-soft)] bg-[var(--color-surface-2)]">
         <div className="pointer-events-none absolute inset-0 z-[300] opacity-20 [background-image:linear-gradient(rgba(192,201,187,0.7)_1px,transparent_1px),linear-gradient(90deg,rgba(192,201,187,0.7)_1px,transparent_1px)] [background-size:52px_52px]" />
-        <div className="h-[68vh] min-h-[520px]">
+        <div className="h-[58vh] min-h-[340px] sm:h-[62vh] sm:min-h-[420px] xl:h-[68vh] xl:min-h-[520px]">
           <MapContainer
             center={defaultCenter}
             zoom={6}
@@ -120,11 +131,11 @@ export default function MapSelector({
                 icon={markerIcon}
               >
                 <Popup>
-                  <strong>Selected location</strong>
+                  <strong>{t("map.selectedLocation")}</strong>
                   <br />
-                  Latitude: {selectedPoint.lat}
+                  {t("map.latitude")}: {selectedPoint.lat}
                   <br />
-                  Longitude: {selectedPoint.lng}
+                  {t("map.longitude")}: {selectedPoint.lng}
                 </Popup>
               </Marker>
             )}
@@ -133,16 +144,16 @@ export default function MapSelector({
 
         <div className="pointer-events-none absolute inset-x-0 top-0 z-[350] h-24 bg-gradient-to-b from-[rgba(255,255,255,0.6)] to-transparent" />
 
-        <div className="absolute bottom-4 left-4 z-[400] max-w-sm rounded-[1.5rem] border border-[var(--color-outline-soft)] bg-[rgba(255,255,255,0.94)] p-5 shadow-[0_24px_50px_-30px_rgba(27,94,32,0.5)] backdrop-blur-md">
+        <div className="relative z-[400] m-3 rounded-[1.5rem] border border-[var(--color-outline-soft)] bg-[rgba(255,255,255,0.96)] p-4 shadow-[0_24px_50px_-30px_rgba(27,94,32,0.5)] backdrop-blur-md sm:absolute sm:bottom-4 sm:left-4 sm:m-0 sm:max-w-sm sm:p-5">
           <div className="flex items-start justify-between gap-4">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--color-foreground-soft)]">
-                Selected Coordinates
+                {t("map.selectedCoordinates")}
               </p>
-              <p className="mt-3 text-sm font-medium text-[var(--color-foreground-muted)]">
+              <p className="mt-3 text-sm leading-6 font-medium text-[var(--color-foreground-muted)]">
                 {selectedPoint
-                  ? "Location selected from the embedded map."
-                  : "Click anywhere on the map to select a location."}
+                  ? t("map.locationSelectedFromMap")
+                  : t("map.clickMapInstruction")}
               </p>
             </div>
             <MapPin className="h-5 w-5 text-[var(--color-primary)]" />
@@ -151,18 +162,18 @@ export default function MapSelector({
           <div className="mt-5 grid grid-cols-2 gap-4 border-t border-[var(--color-outline-soft)] pt-4">
             <div>
               <p className="text-xs uppercase tracking-[0.18em] text-[var(--color-foreground-soft)]">
-                Latitude
+                {t("map.latitude")}
               </p>
               <p className="mt-2 text-xl font-semibold tracking-[-0.02em] text-[var(--color-foreground)]">
-                {selectedPoint ? selectedPoint.lat : "No data yet"}
+                {selectedPoint ? selectedPoint.lat : t("common.noDataYet")}
               </p>
             </div>
             <div>
               <p className="text-xs uppercase tracking-[0.18em] text-[var(--color-foreground-soft)]">
-                Longitude
+                {t("map.longitude")}
               </p>
               <p className="mt-2 text-xl font-semibold tracking-[-0.02em] text-[var(--color-foreground)]">
-                {selectedPoint ? selectedPoint.lng : "No data yet"}
+                {selectedPoint ? selectedPoint.lng : t("common.noDataYet")}
               </p>
             </div>
           </div>
@@ -171,20 +182,23 @@ export default function MapSelector({
             type="button"
             onClick={onAnalyzeLocation}
             disabled={isAnalyzing}
-            className={`mt-5 inline-flex w-full items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-semibold ${
+            aria-label={t("map.analyzeLocation")}
+            className={`mt-5 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-semibold ${
               selectedPoint
-                ? "bg-[var(--color-primary-strong)] text-white shadow-[0_18px_34px_-22px_rgba(27,94,32,0.78)]"
+                ? "bg-[var(--color-primary-strong)] text-white shadow-[0_18px_34px_-22px_rgba(27,94,32,0.78)] hover:translate-y-[-1px]"
                 : "cursor-not-allowed bg-[var(--color-surface-4)] text-[var(--color-foreground-soft)]"
             }`}
           >
             <Target className="h-4 w-4" />
-            {isAnalyzing ? "Analyzing Location..." : "Analyze Location"}
+            {isAnalyzing
+              ? t("map.analyzingLocation")
+              : t("map.analyzeLocation")}
           </button>
 
           <p className="mt-3 text-sm text-[var(--color-foreground-muted)]">
             {analysisMessage}
           </p>
-          <p className="mt-2 text-xs leading-6 text-[var(--color-foreground-soft)]">
+          <p className="mt-2 break-all text-xs leading-6 text-[var(--color-foreground-soft)] sm:break-normal">
             {selectedLabel}
           </p>
         </div>
