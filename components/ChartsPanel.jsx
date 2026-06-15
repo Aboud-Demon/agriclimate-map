@@ -30,7 +30,7 @@ const chartConfig = [
   },
 ];
 
-function TrendChart({ data, dataKey, color }) {
+function TrendChart({ data, dataKey, color, height = 152 }) {
   const containerRef = useRef(null);
   const [width, setWidth] = useState(0);
 
@@ -59,7 +59,7 @@ function TrendChart({ data, dataKey, color }) {
   return (
     <div ref={containerRef} className="h-full w-full">
       {width > 0 ? (
-        <LineChart width={width} height={152} data={data}>
+        <LineChart width={width} height={height} data={data}>
           <CartesianGrid stroke="#c0c9bb" strokeDasharray="3 3" />
           <XAxis dataKey="year" stroke="#717a6d" />
           <YAxis stroke="#717a6d" />
@@ -83,18 +83,24 @@ function TrendChart({ data, dataKey, color }) {
   );
 }
 
-export default function ChartsPanel({ yearly, isLoading }) {
+export default function ChartsPanel({
+  yearly,
+  isLoading,
+  className = "",
+  cardClassName = "",
+  chartHeight = 152,
+}) {
   const { t } = useLanguage();
 
   return (
-    <div className="grid gap-3">
+    <div className={`grid gap-3 ${className}`.trim()}>
       {chartConfig.map((chart) => {
         const hasData = yearly.some((entry) => entry?.[chart.dataKey] !== null);
 
         return (
           <div
             key={chart.dataKey}
-            className="min-w-0 rounded-[1.5rem] border border-[var(--color-outline-soft)] bg-[var(--color-surface-1)] p-4 sm:p-5"
+            className={`min-w-0 rounded-[1.5rem] border border-[var(--color-outline-soft)] bg-[var(--color-surface-1)] p-4 sm:p-5 ${cardClassName}`.trim()}
           >
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-foreground-soft)]">
               {t(chart.titleKey)}
@@ -109,6 +115,7 @@ export default function ChartsPanel({ yearly, isLoading }) {
                   data={yearly}
                   dataKey={chart.dataKey}
                   color={chart.color}
+                  height={chartHeight}
                 />
               ) : (
                 <div className="flex h-full items-center justify-center px-5 text-center text-sm text-[var(--color-foreground-muted)]">

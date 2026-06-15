@@ -5,6 +5,7 @@ import { LoaderCircle } from "lucide-react";
 import { useState } from "react";
 
 import { useLanguage } from "@/components/LanguageProvider";
+import { calculateFieldAreaDetails } from "@/lib/fieldGeometry";
 import { saveLastAnalysis } from "@/lib/lastAnalysisStorage";
 import Navbar from "@/components/Navbar";
 import ResultPanel from "@/components/ResultPanel";
@@ -29,10 +30,19 @@ const MapSelector = dynamic(() => import("@/components/MapSelector"), {
 
 export default function MapPage() {
   const { t } = useLanguage();
+  const [selectionMode, setSelectionMode] = useState("point");
   const [selectedPoint, setSelectedPoint] = useState(null);
+  const [fieldPoints, setFieldPoints] = useState([]);
+  const [fieldArea, setFieldArea] = useState(null);
+  const [fieldRedoStack, setFieldRedoStack] = useState([]);
+  const [isFieldFinalized, setIsFieldFinalized] = useState(false);
+  const [isEditingField, setIsEditingField] = useState(false);
+  const [currentWeatherData, setCurrentWeatherData] = useState(null);
   const [weatherData, setWeatherData] = useState(null);
   const [soilData, setSoilData] = useState(null);
   const [riskData, setRiskData] = useState(null);
+  const [currentStatus, setCurrentStatus] = useState("idle");
+  const [currentMessageKey, setCurrentMessageKey] = useState("common.noDataYet");
   const [analysisStatus, setAnalysisStatus] = useState("idle");
   const [analysisMessageKey, setAnalysisMessageKey] = useState(
     "map.selectLocation"
@@ -45,46 +55,223 @@ export default function MapPage() {
   );
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
-  const handlePointSelect = (point) => {
-    setSelectedPoint(point);
+  const resetAnalysisResults = () => {
+    setCurrentWeatherData(null);
     setWeatherData(null);
     setSoilData(null);
     setRiskData(null);
+    setCurrentStatus("idle");
     setAnalysisStatus("idle");
     setSoilStatus("idle");
     setRiskStatus("idle");
-    setAnalysisMessageKey("map.locationReady");
+    setCurrentMessageKey("common.noDataYet");
     setSoilMessageKey("common.noDataYet");
     setRiskMessageKey("map.riskPlaceholder");
   };
 
-  const handleAnalyzeLocation = async () => {
-    if (!selectedPoint) {
+  const syncFieldState = (nextPoints, options = {}) => {
+    const {
+      finalized = isFieldFinalized,
+      messageKey,
+    } = options;
+
+    if (finalized && nextPoints.length >= 3) {
+      setFieldArea(calculateFieldAreaDetails(nextPoints));
+      setAnalysisMessageKey(messageKey || "map.fieldCompleted");
+      return;
+    }
+
+    setFieldArea(null);
+
+    if (messageKey) {
+      setAnalysisMessageKey(messageKey);
+      return;
+    }
+
+    setAnalysisMessageKey(
+      nextPoints.length >= 3
+        ? "map.fieldIncomplete"
+        : "map.fieldDrawingInstruction"
+    );
+  };
+
+  const resetFieldSelectionState = () => {
+    setFieldPoints([]);
+    setFieldArea(null);
+    setFieldRedoStack([]);
+    setIsFieldFinalized(false);
+    setIsEditingField(false);
+  };
+
+  const handleSelectionModeChange = (mode) => {
+    setSelectionMode(mode);
+    setSelectedPoint(null);
+    resetFieldSelectionState();
+    resetAnalysisResults();
+    setAnalysisMessageKey(
+      mode === "field-area" ? "map.fieldDrawingInstruction" : "map.selectLocation"
+    );
+  };
+
+  const handlePointSelect = (point) => {
+    setSelectionMode("point");
+    setSelectedPoint(point);
+    resetFieldSelectionState();
+    resetAnalysisResults();
+    setAnalysisMessageKey("map.locationReady");
+  };
+
+  const handleFieldPointAdd = (point) => {
+    if (isFieldFinalized) {
+      return;
+    }
+
+    setSelectionMode("field-area");
+    setSelectedPoint(null);
+    setIsEditingField(false);
+    resetAnalysisResults();
+    setFieldRedoStack([]);
+    setFieldPoints((currentPoints) => {
+      const nextPoints = [...currentPoints, point];
+      syncFieldState(nextPoints, { finalized: false });
+      return nextPoints;
+    });
+  };
+
+  const handleFinishField = () => {
+    if (fieldPoints.length < 3) {
       setAnalysisStatus("error");
-      setAnalysisMessageKey("map.noLocationError");
+      setAnalysisMessageKey("map.fieldIncomplete");
+      return;
+    }
+
+    const nextFieldArea = calculateFieldAreaDetails(fieldPoints);
+
+    setIsFieldFinalized(true);
+    setIsEditingField(false);
+    setFieldArea(nextFieldArea);
+    setAnalysisStatus("idle");
+    setAnalysisMessageKey("map.fieldCompleted");
+  };
+
+  const handleUndoFieldPoint = () => {
+    if (!fieldPoints.length) {
+      return;
+    }
+
+    setFieldPoints((currentPoints) => {
+      const removedPoint = currentPoints[currentPoints.length - 1];
+      const nextPoints = currentPoints.slice(0, -1);
+
+      setFieldRedoStack((currentRedo) => [...currentRedo, removedPoint]);
+      syncFieldState(nextPoints);
+
+      return nextPoints;
+    });
+  };
+
+  const handleRedoFieldPoint = () => {
+    if (!fieldRedoStack.length) {
+      return;
+    }
+
+    const restoredPoint = fieldRedoStack[fieldRedoStack.length - 1];
+
+    setFieldRedoStack((currentRedo) => currentRedo.slice(0, -1));
+    setFieldPoints((currentPoints) => {
+      const nextPoints = [...currentPoints, restoredPoint];
+      syncFieldState(nextPoints);
+      return nextPoints;
+    });
+  };
+
+  const handleToggleEditField = () => {
+    if (!fieldPoints.length) {
+      return;
+    }
+
+    setIsEditingField((current) => !current);
+  };
+
+  const handleFieldPointMove = (index, point) => {
+    setFieldPoints((currentPoints) => {
+      const nextPoints = currentPoints.map((currentPoint, currentIndex) =>
+        currentIndex === index ? point : currentPoint
+      );
+
+      syncFieldState(nextPoints);
+      return nextPoints;
+    });
+  };
+
+  const handleClearSelection = () => {
+    setSelectedPoint(null);
+    resetFieldSelectionState();
+    resetAnalysisResults();
+    setAnalysisMessageKey(
+      selectionMode === "field-area" ? "map.fieldDrawingInstruction" : "map.selectLocation"
+    );
+  };
+
+  const handleAnalyzeLocation = async () => {
+    const locationForAnalysis =
+      selectionMode === "field-area" ? fieldArea?.centroid : selectedPoint;
+
+    if (!locationForAnalysis) {
+      setAnalysisStatus("error");
+      setAnalysisMessageKey(
+        selectionMode === "field-area" ? "map.fieldIncomplete" : "map.noLocationError"
+      );
       return;
     }
 
     setIsAnalyzing(true);
+    setCurrentStatus("loading");
     setAnalysisStatus("loading");
     setSoilStatus("loading");
     setRiskStatus("loading");
-    setAnalysisMessageKey("map.fetchingHistorical");
+    setCurrentMessageKey("current.loading");
+    setAnalysisMessageKey("map.analyzingAll");
     setSoilMessageKey("map.fetchingSoil");
     setRiskMessageKey("map.fetchingRisk");
 
-    const [weatherResult, soilResult, riskResult] = await Promise.allSettled([
-      fetch(`/api/historical?lat=${selectedPoint.lat}&lng=${selectedPoint.lng}`),
-      fetch(`/api/soil?lat=${selectedPoint.lat}&lng=${selectedPoint.lng}`),
-      fetch(`/api/risk?lat=${selectedPoint.lat}&lng=${selectedPoint.lng}`),
-    ]);
+    const [currentResult, weatherResult, soilResult, riskResult] =
+      await Promise.allSettled([
+        fetch(
+          `/api/current?lat=${locationForAnalysis.lat}&lng=${locationForAnalysis.lng}`
+        ),
+      fetch(`/api/historical?lat=${locationForAnalysis.lat}&lng=${locationForAnalysis.lng}`),
+      fetch(`/api/soil?lat=${locationForAnalysis.lat}&lng=${locationForAnalysis.lng}`),
+      fetch(`/api/risk?lat=${locationForAnalysis.lat}&lng=${locationForAnalysis.lng}`),
+      ]);
 
+    let currentSuccess = false;
     let weatherSuccess = false;
     let soilSuccess = false;
     let riskSuccess = false;
+    let currentJson = null;
     let weatherJson = null;
     let soilJson = null;
     let riskJson = null;
+
+    if (currentResult.status === "fulfilled") {
+      currentJson = await currentResult.value.json();
+
+      if (currentResult.value.ok) {
+        setCurrentWeatherData(currentJson);
+        setCurrentStatus("success");
+        setCurrentMessageKey("current.loaded");
+        currentSuccess = true;
+      } else {
+        setCurrentWeatherData(null);
+        setCurrentStatus("error");
+        setCurrentMessageKey("current.unavailable");
+      }
+    } else {
+      setCurrentWeatherData(null);
+      setCurrentStatus("error");
+      setCurrentMessageKey("current.unavailable");
+    }
 
     if (weatherResult.status === "fulfilled") {
       weatherJson = await weatherResult.value.json();
@@ -116,12 +303,12 @@ export default function MapPage() {
       } else {
         setSoilData(null);
         setSoilStatus("error");
-        setSoilMessageKey("map.soilUnavailable");
+        setSoilMessageKey("map.soilUnavailableDetailed");
       }
     } else {
       setSoilData(null);
       setSoilStatus("error");
-      setSoilMessageKey("map.soilError");
+      setSoilMessageKey("map.soilUnavailableDetailed");
     }
 
     if (riskResult.status === "fulfilled") {
@@ -139,12 +326,12 @@ export default function MapPage() {
       } else {
         setRiskData(null);
         setRiskStatus("error");
-        setRiskMessageKey("map.riskError");
+        setRiskMessageKey("map.riskUnavailableDetailed");
       }
     } else {
       setRiskData(null);
       setRiskStatus("error");
-      setRiskMessageKey("map.riskError");
+      setRiskMessageKey("map.riskUnavailableDetailed");
     }
 
     if (!weatherSuccess && (soilSuccess || riskSuccess)) {
@@ -153,9 +340,13 @@ export default function MapPage() {
 
     saveLastAnalysis({
       location: {
-        lat: selectedPoint.lat,
-        lng: selectedPoint.lng,
+        lat: locationForAnalysis.lat,
+        lng: locationForAnalysis.lng,
       },
+      selectionType: selectionMode,
+      fieldArea:
+        selectionMode === "field-area" && isFieldFinalized ? fieldArea : null,
+      current: currentSuccess ? currentJson : null,
       historical: weatherSuccess ? weatherJson : null,
       soil: soilSuccess ? soilJson : null,
       risk: riskSuccess ? riskJson : null,
@@ -172,18 +363,37 @@ export default function MapPage() {
         <div className="rounded-[2rem] border border-[var(--color-outline-soft)] bg-[linear-gradient(180deg,rgba(255,255,255,0.7),rgba(245,245,220,0.72))] p-3 shadow-[0_25px_55px_-42px_rgba(27,94,32,0.5)] lg:p-4">
           <div className="grid gap-4 lg:gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(360px,440px)]">
             <MapSelector
+              selectionMode={selectionMode}
               selectedPoint={selectedPoint}
+              fieldPoints={fieldPoints}
+              fieldArea={fieldArea}
+              fieldRedoStack={fieldRedoStack}
+              isFieldFinalized={isFieldFinalized}
+              isEditingField={isEditingField}
               analysisStatus={analysisStatus}
               isAnalyzing={isAnalyzing}
               analysisMessage={t(analysisMessageKey)}
+              onSelectionModeChange={handleSelectionModeChange}
               onPointSelect={handlePointSelect}
+              onFieldPointAdd={handleFieldPointAdd}
+              onFinishField={handleFinishField}
+              onUndoFieldPoint={handleUndoFieldPoint}
+              onRedoFieldPoint={handleRedoFieldPoint}
+              onToggleEditField={handleToggleEditField}
+              onFieldPointMove={handleFieldPointMove}
+              onClearSelection={handleClearSelection}
               onAnalyzeLocation={handleAnalyzeLocation}
             />
             <ResultPanel
+              selectionMode={selectionMode}
               selectedPoint={selectedPoint}
+              fieldArea={fieldArea}
+              currentWeatherData={currentWeatherData}
               weatherData={weatherData}
               soilData={soilData}
               riskData={riskData}
+              currentStatus={currentStatus}
+              currentMessage={t(currentMessageKey)}
               analysisStatus={analysisStatus}
               analysisMessage={t(analysisMessageKey)}
               soilStatus={soilStatus}

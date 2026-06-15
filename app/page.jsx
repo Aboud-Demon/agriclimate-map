@@ -30,6 +30,24 @@ function formatMetric(value, unit, fallback) {
   return unit ? `${value} ${unit}` : String(value);
 }
 
+function renderHeroSoilMoisture(value, fallback, language) {
+  if (value === null || value === undefined || value === "") {
+    return fallback;
+  }
+
+  const unit = language === "ar" ? "م\u00B3/م\u00B3" : "m\u00B3/m\u00B3";
+
+  return (
+    <span
+      className="inline-flex items-baseline gap-2"
+      dir={language === "ar" ? "rtl" : "ltr"}
+    >
+      <span dir="ltr">{value}</span>
+      <span>{unit}</span>
+    </span>
+  );
+}
+
 function formatPeriod(period, fallback) {
   if (!period?.start || !period?.end) {
     return fallback;
@@ -110,6 +128,7 @@ function HomeOverviewCard({
 
 export default function HomePage() {
   const {
+    language,
     t,
     translateDynamicText,
     translateSeverity,
@@ -121,6 +140,9 @@ export default function HomePage() {
   }, []);
 
   const featureCards = useMemo(() => {
+    const selectionType = latestAnalysis?.selectionType || "point";
+    const latestFieldArea = latestAnalysis?.fieldArea;
+    const currentSummary = latestAnalysis?.current?.current;
     const historicalSummary = latestAnalysis?.historical?.summary;
     const historicalPeriod = latestAnalysis?.historical?.period;
     const soilSummary = latestAnalysis?.soil?.summary;
@@ -134,6 +156,14 @@ export default function HomePage() {
         description: t("home.features.historicalWeatherDescription"),
         icon: CloudSun,
         rows: [
+          {
+            label: t("home.currentTemperature"),
+            value: formatMetric(
+              currentSummary?.temperature,
+              "\u00B0C",
+              t("common.noDataYet")
+            ),
+          },
           {
             label: t("weather.averageTemperature"),
             value: formatMetric(
@@ -149,11 +179,6 @@ export default function HomePage() {
               "mm",
               t("common.noDataYet")
             ),
-          },
-          {
-            label: t("home.periodLabel"),
-            value: formatPeriod(historicalPeriod, t("common.noDataYet")),
-            direction: "ltr",
           },
         ],
       },
@@ -255,15 +280,43 @@ export default function HomePage() {
             value: latestAnalysis ? t("home.analysisAvailable") : t("common.noDataYet"),
           },
           {
-            label: t("home.nextStep"),
-            value: t("home.openReportForDetails"),
+            label:
+              selectionType === "field-area"
+                ? t("home.fieldBoundaryPoints")
+                : t("home.nextStep"),
+            value:
+              selectionType === "field-area" && latestFieldArea
+                ? String(latestFieldArea.pointCount)
+                : t("home.openReportForDetails"),
           },
         ],
       },
     ];
   }, [latestAnalysis, t, translateDynamicText, translateSeverity]);
 
-  const heroSummary = latestAnalysis?.historical?.summary?.avgSoilMoisture;
+  const selectionType = latestAnalysis?.selectionType || "point";
+  const latestFieldArea = latestAnalysis?.fieldArea;
+  const latestAlerts = latestAnalysis?.risk?.alerts ?? [];
+  const latestHighestSeverity = getHighestSeverity(latestAlerts);
+  const latestCurrentTemperature = latestAnalysis?.current?.current?.temperature;
+  const latestSoilType = latestAnalysis?.soil?.summary?.textureClass;
+  const latestSoilMoisture = latestAnalysis?.historical?.summary?.avgSoilMoisture;
+  const selectionTypeLabel =
+    selectionType === "field-area"
+      ? t("map.fieldAreaSelection")
+      : t("map.pointSelection");
+  const heroSummary =
+    latestCurrentTemperature ?? latestSoilMoisture;
+  const heroMetricLabel =
+    selectionType === "field-area"
+      ? latestCurrentTemperature !== null &&
+        latestCurrentTemperature !== undefined
+        ? t("home.currentTemperature")
+        : t("home.fieldAreaSize")
+      : latestCurrentTemperature !== null &&
+          latestCurrentTemperature !== undefined
+        ? t("home.currentTemperature")
+        : t("home.panelMetricLabel");
 
   return (
     <div className="min-h-screen bg-[var(--color-background)] text-[var(--color-foreground)]">
@@ -323,18 +376,109 @@ export default function HomePage() {
                           ? t("home.latestAnalysisSubtitle")
                           : t("home.panelSubtitle")}
                       </p>
+                      {latestAnalysis ? (
+                        <div className="mt-4 grid gap-3 rounded-2xl border border-white/10 bg-white/10 p-4 text-sm text-[rgba(255,255,255,0.78)] sm:grid-cols-2">
+                          <div>
+                            <p className="text-[11px] uppercase tracking-[0.18em] text-[rgba(255,255,255,0.58)]">
+                              {t("home.selectionType")}
+                            </p>
+                            <p className="mt-1 font-semibold text-white">
+                              {selectionTypeLabel}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-[11px] uppercase tracking-[0.18em] text-[rgba(255,255,255,0.58)]">
+                              {t("home.currentTemperature")}
+                            </p>
+                            <p className="mt-1 font-semibold text-white">
+                              {formatMetric(
+                                latestCurrentTemperature,
+                                "\u00B0C",
+                                t("common.noDataYet")
+                              )}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-[11px] uppercase tracking-[0.18em] text-[rgba(255,255,255,0.58)]">
+                              {t("soil.soilType")}
+                            </p>
+                            <p className="mt-1 font-semibold text-white">
+                              {latestSoilType || t("common.noDataYet")}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-[11px] uppercase tracking-[0.18em] text-[rgba(255,255,255,0.58)]">
+                              {t("home.currentSoilMoisture")}
+                            </p>
+                            <p className="mt-1 font-semibold text-white">
+                              {renderHeroSoilMoisture(
+                                latestSoilMoisture,
+                                t("common.noDataYet"),
+                                language
+                              )}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-[11px] uppercase tracking-[0.18em] text-[rgba(255,255,255,0.58)]">
+                              {t("home.alertCount")}
+                            </p>
+                            <p className="mt-1 font-semibold text-white">
+                              {latestAlerts.length}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-[11px] uppercase tracking-[0.18em] text-[rgba(255,255,255,0.58)]">
+                              {t("alerts.severity")}
+                            </p>
+                            <p className="mt-1 font-semibold text-white">
+                              {latestHighestSeverity
+                                ? translateSeverity(latestHighestSeverity)
+                                : t("common.noDataYet")}
+                            </p>
+                          </div>
+                          {selectionType === "field-area" && latestFieldArea ? (
+                            <div className="sm:col-span-2">
+                              <p className="text-[11px] uppercase tracking-[0.18em] text-[rgba(255,255,255,0.58)]">
+                                {t("home.fieldBoundaryPoints")}
+                              </p>
+                              <p className="mt-1 font-semibold text-white">
+                                {latestFieldArea.pointCount}
+                              </p>
+                            </div>
+                          ) : null}
+                        </div>
+                      ) : (
+                        <div className="mt-4 rounded-2xl border border-white/10 bg-white/10 p-4 text-sm leading-6 text-[rgba(255,255,255,0.78)]">
+                          {t("home.noAnalysisSummary")}
+                        </div>
+                      )}
                     </div>
                     <div className="self-start rounded-3xl border border-[rgba(12,82,22,0.1)] bg-[rgba(251,251,226,0.92)] p-5 shadow-lg">
                       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-foreground-soft)]">
-                        {t("home.panelMetricLabel")}
+                        {heroMetricLabel}
                       </p>
                       <p className="mt-3 text-3xl font-semibold tracking-[-0.03em] text-[var(--color-primary)]">
-                        {formatMetric(heroSummary, "m\u00B3/m\u00B3", t("common.noDataYet"))}
+                        {selectionType === "field-area" &&
+                        (latestAnalysis?.current?.current?.temperature === null ||
+                          latestAnalysis?.current?.current?.temperature === undefined)
+                          ? formatMetric(
+                              latestFieldArea?.areaHectares,
+                              "ha",
+                              t("common.noDataYet")
+                            )
+                          : latestAnalysis?.current?.current?.temperature !== null &&
+                              latestAnalysis?.current?.current?.temperature !== undefined
+                            ? formatMetric(heroSummary, "\u00B0C", t("common.noDataYet"))
+                            : renderHeroSoilMoisture(
+                                heroSummary,
+                                t("common.noDataYet"),
+                                language
+                              )}
                       </p>
                       <p className="mt-2 text-sm text-[var(--color-secondary)]">
                         {latestAnalysis
                           ? t("home.latestAnalysisReady")
-                          : t("home.awaitingLiveAnalysis")}
+                          : t("home.noAnalysisSummary")}
                       </p>
                     </div>
                   </div>

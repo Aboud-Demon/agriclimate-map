@@ -11,6 +11,7 @@ import {
 
 import AlertPanel from "@/components/AlertPanel";
 import ChartsPanel from "@/components/ChartsPanel";
+import CurrentWeatherCards from "@/components/CurrentWeatherCards";
 import { useLanguage } from "@/components/LanguageProvider";
 import RecommendationCard from "@/components/RecommendationCard";
 import SoilCards from "@/components/SoilCards";
@@ -30,10 +31,15 @@ function SectionTitle({ icon: Icon, title }) {
 }
 
 export default function ResultPanel({
+  selectionMode,
   selectedPoint,
+  fieldArea,
+  currentWeatherData,
   weatherData,
   soilData,
   riskData,
+  currentStatus,
+  currentMessage,
   analysisStatus,
   analysisMessage,
   soilStatus,
@@ -44,9 +50,14 @@ export default function ResultPanel({
   onAnalyzeLocation,
 }) {
   const { t } = useLanguage();
-  const coordinates = selectedPoint
-    ? `${selectedPoint.lat}, ${selectedPoint.lng}`
-    : t("common.noDataYet");
+  const coordinates =
+    selectionMode === "field-area"
+      ? fieldArea?.centroid
+        ? `${fieldArea.centroid.lat}, ${fieldArea.centroid.lng}`
+        : t("common.noDataYet")
+      : selectedPoint
+        ? `${selectedPoint.lat}, ${selectedPoint.lng}`
+        : t("common.noDataYet");
 
   const statusLabel =
     isAnalyzing
@@ -67,7 +78,8 @@ export default function ResultPanel({
             disabled={isAnalyzing}
             aria-label={t("map.runAnalysis")}
             className={`flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-semibold sm:text-base ${
-              isAnalyzing || !selectedPoint
+              isAnalyzing ||
+              (selectionMode === "point" ? !selectedPoint : !fieldArea)
                 ? "bg-[var(--color-surface-4)] text-[var(--color-foreground-soft)]"
                 : "bg-[var(--color-primary-strong)] text-white shadow-[0_18px_34px_-22px_rgba(27,94,32,0.78)] hover:translate-y-[-1px]"
             }`}
@@ -86,22 +98,46 @@ export default function ResultPanel({
             <div className="space-y-4 text-sm">
               <div className="flex flex-col gap-2 border-b border-[rgba(192,201,187,0.55)] pb-3 sm:flex-row sm:items-center sm:justify-between">
                 <span className="text-[var(--color-foreground-muted)]">
-                  {t("map.selectedLocation")}
+                  {t("map.selectionType")}
                 </span>
                 <span className="font-semibold text-[var(--color-foreground)]">
-                  {selectedPoint
-                    ? t("map.selectedMapCoordinates")
-                    : t("map.selectLocation")}
+                  {selectionMode === "field-area"
+                    ? t("map.fieldAreaSelection")
+                    : selectedPoint
+                      ? t("map.pointSelection")
+                      : t("map.selectLocation")}
                 </span>
               </div>
               <div className="flex flex-col gap-2 border-b border-[rgba(192,201,187,0.55)] pb-3 sm:flex-row sm:items-center sm:justify-between">
                 <span className="text-[var(--color-foreground-muted)]">
-                  {t("map.selectedCoordinates")}
+                  {selectionMode === "field-area"
+                    ? t("map.fieldCenter")
+                    : t("map.selectedCoordinates")}
                 </span>
                 <span dir="ltr" className="break-all font-semibold text-[var(--color-foreground)] sm:text-right">
                   {coordinates}
                 </span>
               </div>
+              {selectionMode === "field-area" ? (
+                <>
+                  <div className="flex flex-col gap-2 border-b border-[rgba(192,201,187,0.55)] pb-3 sm:flex-row sm:items-center sm:justify-between">
+                    <span className="text-[var(--color-foreground-muted)]">
+                      {t("map.areaHectares")}
+                    </span>
+                    <span className="font-semibold text-[var(--color-foreground)] sm:text-right">
+                      {fieldArea ? `${fieldArea.areaHectares}` : t("common.noDataYet")}
+                    </span>
+                  </div>
+                  <div className="flex flex-col gap-2 border-b border-[rgba(192,201,187,0.55)] pb-3 sm:flex-row sm:items-center sm:justify-between">
+                    <span className="text-[var(--color-foreground-muted)]">
+                      {t("map.boundaryPointCount")}
+                    </span>
+                    <span className="font-semibold text-[var(--color-foreground)] sm:text-right">
+                      {fieldArea?.pointCount ?? t("common.noDataYet")}
+                    </span>
+                  </div>
+                </>
+              ) : null}
               <div className="flex flex-col gap-2 border-b border-[rgba(192,201,187,0.55)] pb-3 sm:flex-row sm:items-center sm:justify-between">
                 <span className="text-[var(--color-foreground-muted)]">
                   {t("map.analysisWindow")}
@@ -121,7 +157,29 @@ export default function ResultPanel({
                 </span>
               </div>
             </div>
+            {selectionMode === "field-area" ? (
+              <p className="mt-4 text-sm leading-7 text-[var(--color-foreground-muted)]">
+                {t("map.representativeLocationNote")}
+              </p>
+            ) : null}
           </div>
+        </section>
+
+        <section>
+          <SectionTitle
+            icon={ThermometerSun}
+            title={t("current.sectionTitle")}
+          />
+          <CurrentWeatherCards
+            current={currentWeatherData?.current}
+            isLoading={isAnalyzing && currentStatus === "loading"}
+            message={currentMessage}
+            note={
+              selectionMode === "field-area"
+                ? t("current.representativeLocationNote")
+                : undefined
+            }
+          />
         </section>
 
         <section>

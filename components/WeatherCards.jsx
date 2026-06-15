@@ -45,10 +45,10 @@ const cards = [
 
 function formatValue(value, unit, fallback) {
   if (value === null || value === undefined) {
-    return fallback;
+    return { value: fallback, dir: "auto" };
   }
 
-  return `${value} ${unit}`;
+  return { value: `${value} ${unit}`, dir: "ltr" };
 }
 
 export default function WeatherCards({ summary, isLoading }) {
@@ -57,23 +57,28 @@ export default function WeatherCards({ summary, isLoading }) {
   return (
     <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-2">
       {cards.map((card) => (
-        <div
-          key={card.key}
-          className="min-w-0 rounded-[1.3rem] border border-[var(--color-outline-soft)] bg-white p-4"
-        >
-          <p className="text-xs uppercase tracking-[0.18em] text-[var(--color-foreground-soft)]">
-            {t(card.labelKey)}
-          </p>
-          <p className="mt-3 text-base font-semibold tracking-[-0.02em] text-[var(--color-foreground)] sm:text-lg">
-            {isLoading
-              ? t("weather.loading")
-              : formatValue(
-                  summary?.[card.key],
-                  card.unit,
-                  t("common.noDataYet")
-                )}
-          </p>
-        </div>
+        (() => {
+          const formatted = isLoading
+            ? { value: t("weather.loading"), dir: "auto" }
+            : formatValue(summary?.[card.key], card.unit, t("common.noDataYet"));
+
+          return (
+            <div
+              key={card.key}
+              className="min-w-0 rounded-[1.3rem] border border-[var(--color-outline-soft)] bg-white p-4"
+            >
+              <p className="text-xs uppercase tracking-[0.18em] text-[var(--color-foreground-soft)]">
+                {t(card.labelKey)}
+              </p>
+              <p
+                dir={formatted.dir}
+                className="mt-3 text-base font-semibold tracking-[-0.02em] text-[var(--color-foreground)] sm:text-lg"
+              >
+                {formatted.value}
+              </p>
+            </div>
+          );
+        })()
       ))}
     </div>
   );

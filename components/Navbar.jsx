@@ -48,11 +48,11 @@ export default function Navbar() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-[var(--color-outline-soft)] bg-[rgba(251,251,226,0.88)] backdrop-blur-xl">
-      <div className="mx-auto flex max-w-[1600px] items-center justify-between gap-6 px-4 py-4 lg:px-6">
-        <div className="flex items-center gap-8">
+      <div className="mx-auto flex max-w-[1600px] flex-wrap items-center justify-between gap-4 px-4 py-4 lg:px-6">
+        <div className="flex min-w-0 items-center gap-4 sm:gap-8">
           <Link
             href="/"
-            className="text-2xl font-semibold tracking-[-0.03em] text-[var(--color-primary)]"
+            className="text-xl font-semibold tracking-[-0.03em] text-[var(--color-primary)] sm:text-2xl"
           >
             {t("common.appName")}
           </Link>
@@ -81,14 +81,14 @@ export default function Navbar() {
 
         <div
           ref={menuContainerRef}
-          className="relative flex items-center gap-2"
+          className="relative flex w-full flex-wrap items-center justify-end gap-2 sm:w-auto"
         >
-          <div className="flex items-center gap-1 rounded-2xl border border-[var(--color-outline-soft)] bg-white/70 p-1">
+          <div className="flex max-w-full items-center gap-1 rounded-2xl border border-[var(--color-outline-soft)] bg-white/70 p-1">
             <button
               type="button"
               onClick={() => setLanguage("en")}
               aria-label={t("common.english")}
-              className={`rounded-xl px-3 py-2 text-sm font-medium ${
+              className={`rounded-xl px-2.5 py-2 text-sm font-medium sm:px-3 ${
                 language === "en"
                   ? "bg-[var(--color-primary-strong)] text-white"
                   : "text-[var(--color-foreground-muted)] hover:bg-white"
@@ -100,7 +100,7 @@ export default function Navbar() {
               type="button"
               onClick={() => setLanguage("ar")}
               aria-label={t("common.arabic")}
-              className={`rounded-xl px-3 py-2 text-sm font-medium ${
+              className={`rounded-xl px-2.5 py-2 text-sm font-medium sm:px-3 ${
                 language === "ar"
                   ? "bg-[var(--color-primary-strong)] text-white"
                   : "text-[var(--color-foreground-muted)] hover:bg-white"
@@ -158,10 +158,10 @@ export default function Navbar() {
                   {t("common.appName")}
                 </p>
                 <p className="mt-2 font-medium text-[var(--color-foreground)]">
-                  {t("nav.demoWorkspace")}
+                  {t("nav.profileTitle")}
                 </p>
                 <p className="mt-2 leading-6 text-[var(--color-foreground-muted)]">
-                  {t("nav.noAccount")}
+                  {t("nav.profileNote")}
                 </p>
               </div>
             ) : null}

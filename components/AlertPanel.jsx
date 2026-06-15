@@ -11,7 +11,13 @@ function formatSeverity(severity) {
   return severity || "notice";
 }
 
-export default function AlertPanel({ alerts = [], isLoading, message }) {
+export default function AlertPanel({
+  alerts = [],
+  isLoading,
+  message,
+  className = "",
+  alertClassName = "",
+}) {
   const {
     t,
     translateAlertType,
@@ -40,11 +46,11 @@ export default function AlertPanel({ alerts = [], isLoading, message }) {
   }
 
   return (
-    <div className="space-y-3">
+    <div className={`space-y-3 ${className}`.trim()}>
       {alerts.map((alert, index) => (
         <article
           key={`${alert.type}-${alert.month}-${index}`}
-          className={`rounded-[1.3rem] border p-4 ${
+          className={`rounded-[1.3rem] border p-4 ${alertClassName} ${
             severityStyles[alert.severity] || severityStyles.low
           }`}
         >

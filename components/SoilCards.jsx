@@ -50,14 +50,14 @@ const cards = [
 
 function formatValue(value, unit, fallback) {
   if (value === null || value === undefined || value === "") {
-    return fallback;
+    return { value: fallback, dir: "auto" };
   }
 
   if (typeof value === "string") {
-    return value;
+    return { value, dir: "auto" };
   }
 
-  return unit ? `${value} ${unit}` : String(value);
+  return { value: unit ? `${value} ${unit}` : String(value), dir: "ltr" };
 }
 
 export default function SoilCards({ summary, isLoading, message }) {
@@ -72,23 +72,28 @@ export default function SoilCards({ summary, isLoading, message }) {
     <div>
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
         {cards.map((card) => (
-          <div
-            key={card.key}
-            className="min-w-0 rounded-[1.2rem] border border-[var(--color-outline-soft)] bg-[var(--color-surface-2)] p-4 text-center"
-          >
-            <p className="text-xs uppercase tracking-[0.18em] text-[var(--color-foreground-soft)]">
-              {t(card.labelKey)}
-            </p>
-            <p className="mt-3 text-base font-semibold tracking-[-0.02em] text-[var(--color-foreground)] sm:text-lg">
-              {isLoading
-                ? t("soil.loading")
-                : formatValue(
-                    summary?.[card.key],
-                    card.unit,
-                    t("common.noDataYet")
-                  )}
-            </p>
-          </div>
+          (() => {
+            const formatted = isLoading
+              ? { value: t("soil.loading"), dir: "auto" }
+              : formatValue(summary?.[card.key], card.unit, t("common.noDataYet"));
+
+            return (
+              <div
+                key={card.key}
+                className="min-w-0 rounded-[1.2rem] border border-[var(--color-outline-soft)] bg-[var(--color-surface-2)] p-4 text-center"
+              >
+                <p className="text-xs uppercase tracking-[0.18em] text-[var(--color-foreground-soft)]">
+                  {t(card.labelKey)}
+                </p>
+                <p
+                  dir={formatted.dir}
+                  className="mt-3 text-base font-semibold tracking-[-0.02em] text-[var(--color-foreground)] sm:text-lg"
+                >
+                  {formatted.value}
+                </p>
+              </div>
+            );
+          })()
         ))}
       </div>
       <p className="mt-3 text-sm text-[var(--color-foreground-muted)]">
